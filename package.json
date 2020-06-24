@@ -1,0 +1,27 @@
+{
+  "name": "password-manager",
+  "version": "1.0.0",
+  "description": "A password manager",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./src/server",
+    "start:dev": "concurrently --kill-others -p \"[ {name} ]\" -n SERVER -c black.bgGreen \"node ./watcher.js\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/the0neWhoKnocks/password-manager.git"
+  },
+  "author": "Trevor Lemon",
+  "license": "MIT",
+  "dependencies": {
+    "etag": "^1.8.1",
+    "mime-types": "^2.1.27"
+  },
+  "devDependencies": {
+    "browser-sync": "^2.26.7",
+    "concurrently": "^5.2.0",
+    "eslint": "^7.3.1",
+    "nodemon": "^2.0.4"
+  }
+}
