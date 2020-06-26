@@ -17,8 +17,8 @@
       color: #fff;
       width: 100%;
       padding: 0.75em 1em;
-      border: solid 1px;
-      border-radius: 0.25em;
+      border: none;
+      border-radius: 0;
       background: #000;
       cursor: pointer;
     }
@@ -65,15 +65,17 @@
       margin-left: 0.5em;
     }
     
-    .remember-me {
-      text-align: right;
-      user-select: none;
+    nav {
+      display: flex;
+    }
+    nav button:not(:first-of-type) {
+      margin-left: 0.75em;
     }
   `;
 
-  class CustomLoginForm extends HTMLElement {
-    set onCreateClick(fn) {
-      this._onCreateClick = fn;
+  class CustomCreateAccountForm extends HTMLElement {
+    set onCancelClick(fn) {
+      this._onCancelClick = fn;
     }
     
     constructor() {
@@ -85,15 +87,15 @@
       shadowRoot.innerHTML = `
         <style>${STYLES}</style>
         
-        <custom-dialog id="loginDialog" modal>
+        <custom-dialog id="createAccountDialog" modal>
           <form
             slot="dialogBody"
-            id="loginForm"
+            id="createAccount"
             method="POST"
-            action="/api/user/login"
+            action="/api/user/create"
           >
             <div class="hr-with-text">
-              <span>Log In</span>
+              <span>Create Account</span>
             </div>
             <label class="input-label">
               Username
@@ -103,30 +105,29 @@
               Password
               <input type="password" name="password" />
             </label>
-            <label class="remember-me">
-              <input type="checkbox" />
-              Remember Me
+            <label class="input-label">
+              Cipher Key
+              <input type="text" name="cipherKey" />
             </label>
-            <button value="login">Log In</button>
-            <div class="hr-with-text">
-              <span>or</span>
-            </div>
-            <button type="button" value="create">Create Account</button>
+            <nav>
+              <button type="button" value="cancel">Cancel</button>
+              <button value="create">Create</button>
+            </nav>
           </form>
         </custom-dialog>
       `;
       
       this.els = {
-        dialog: shadowRoot.querySelector('#loginDialog'),
+        dialog: shadowRoot.querySelector('#createAccountDialog'),
         userName: shadowRoot.querySelector('[name="username"]'),
-        createAccountBtn: shadowRoot.querySelector('[value="create"]'),
+        cancelBtn: shadowRoot.querySelector('[value="cancel"]'),
       };
       
-      this.handleCreateClick = this.handleCreateClick.bind(this);
+      this.handleCancelClick = this.handleCancelClick.bind(this);
     }
     
-    handleCreateClick() {
-      if (this._onCreateClick) this._onCreateClick();
+    handleCancelClick() {
+      if (this._onCancelClick) this._onCancelClick();
     }
     
     show() {
@@ -134,11 +135,11 @@
       this.els.dialog.show();
       this.els.userName.focus();
       
-      this.els.createAccountBtn.addEventListener('click', this.handleCreateClick);
+      this.els.cancelBtn.addEventListener('click', this.handleCancelClick);
     }
     
     close() {
-      this.els.createAccountBtn.removeEventListener('click', this.handleCreateClick);
+      this.els.cancelBtn.removeEventListener('click', this.handleCancelClick);
       
       this.els.dialog.onClose = () => {
         this.remove();
@@ -147,5 +148,5 @@
     }
   }
 
-  window.customElements.define('custom-login-form', CustomLoginForm);
+  window.customElements.define('custom-create-account-form', CustomCreateAccountForm);
 })();

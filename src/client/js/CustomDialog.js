@@ -198,7 +198,9 @@
       setTimeout(() => {
         if (this._onClose) this._onClose();
         delete window.customDialog;
-        this.remove();
+        
+        // only remove if not within another Web Component
+        if (this.parentNode.toString() !== "[object ShadowRoot]") this.remove();
       }, ANIM_DURATION);
     }
   }
