@@ -6,6 +6,8 @@
   - [ ] Login (button)
     - Inputs: Username, Password
     - Checkbox: Remember Me
+      - [ ] ‎When checked, use `localStorage`, else, use `sessionStorage`
+  - [ ] Have 2 vault doors in the BG, list will load behind them after login, then doors will open 
 - Once logged in
   - Nav
     - + Add Credentials (button)
