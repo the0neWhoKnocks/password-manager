@@ -20,7 +20,7 @@ const encrypt = (cipherKey, value) => new Promise((res) => {
   res(`${iv.toString('hex')}:${encrypted.toString('hex')}`);
 });
 
-const decrypt = (cipherKey, value) => new Promise((res) => {
+const decrypt = (cipherKey, value) => new Promise((resolve) => {
   const key = crypto.scryptSync(cipherKey, SALT, 24);
   const [ivHex, encryptedHex] = value.split(':');
   const iv = Buffer.from(ivHex, 'hex');
@@ -31,36 +31,37 @@ const decrypt = (cipherKey, value) => new Promise((res) => {
     decipher.final()
   ]);
 
-  res(decrypted.toString());
+  resolve(decrypted.toString());
 });
 
-const returnResp = ({ data, label, prefix = '', res }) => {
-  if (!res) throw Error('Missing `res`');
+const returnResp = ({ data, label, prefix = '', resp }) => {
+  if (!resp) throw Error('Missing `resp`');
   else {
     console.log(`[${prefix.toUpperCase()}] ${label}`);
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(data || {}));
+    resp.setHeader('Content-Type', 'application/json');
+    resp.end(JSON.stringify(data || {}));
   }
 };
 
-const returnErrorResp = ({ label, res }) => (err) => {
-  if (!res) throw Error('Missing `res`');
+const returnErrorResp = ({ label, resp }) => (err) => {
+  if (!resp) throw Error('Missing `resp`');
   else {
     let errMsg = err;
-    res.statusCode = 500;
-    res.statusMessage = 'Server Error';
+    resp.statusCode = 500;
+    resp.statusMessage = 'Server Error';
     
     if (err instanceof Error) {
       console.log(`[ERROR] ${label}:`, err);
       errMsg = err.stack;
     }
     
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: `${errMsg}` }));
+    resp.setHeader('Content-Type', 'application/json');
+    resp.end(JSON.stringify({ error: `${errMsg}` }));
   }
 };
 
 function createUser({ req, res }) {
+function createUser({ req, resp }) {
   parseReq(req)
     .then(({ cipherKey, username }) => {
       if (!cipherKey || !username) {
@@ -106,43 +107,43 @@ function genToken({ req, res }) {
         //   data: { authKey },
         //   label: `User for "${username}"`,
         //   prefix: 'created',
-        //   res,
+        //   resp,
         // });
       }
     })
-    .catch(returnErrorResp({ label: 'Gen Token request parse failed', res }));
+    .catch(returnErrorResp({ label: 'Gen Token request parse failed', resp }));
 }
 
-// function login({ req, res }) {
+// function login({ req, resp }) {
 //   auth.verifyToken(formattedKey, formattedToken);
 // }
 
-function createConfig({ req, res }) {
+function createConfig({ req, resp }) {
   parseReq(req)
     .then(({ cipherKey, salt }) => {
       if (!cipherKey || !salt) {
-        returnErrorResp({ res })(
+        returnErrorResp({ resp })(
           `Looks like you're missing some data.\n  Cipher Key: "${cipherKey}"\n  Salt: "${salt}"`
         );
       }
       else {
         writeFile(CONFIG_PATH, JSON.stringify({ cipherKey, salt }), 'utf8', (err) => {
-          if (err) returnErrorResp({ label: 'Create Config write failed', res });
-          else returnResp({ label: 'Config', prefix: 'created', res });
+          if (err) returnErrorResp({ label: 'Create Config write failed', resp });
+          else returnResp({ label: 'Config', prefix: 'created', resp });
         });
       }
     })
-    .catch(returnErrorResp({ label: 'Create Config request parse failed', res }));
+    .catch(returnErrorResp({ label: 'Create Config request parse failed', resp }));
 }
 
-module.exports = function apiMiddleware({ req, res, urlPath }) {
+module.exports = function apiMiddleware({ req, resp, urlPath }) {
   if (urlPath.startsWith('/api')) {
-    res.preparingAsyncResponse();
+    resp.preparingAsyncResponse();
     
-    if (urlPath.endsWith('/config/create')) createConfig({ req, res });
-    else if (urlPath.endsWith('/user/create')) createUser({ req, res });
-    else if (urlPath.endsWith('/user/gen-token')) genToken({ req, res });
-    // else if (urlPath.endsWith('/user/login')) login({ req, res });
-    else returnErrorResp({ res })(`The endpoint "${urlPath}" does not exist`);
+    if (urlPath.endsWith('/config/create')) createConfig({ req, resp });
+    else if (urlPath.endsWith('/user/create')) createUser({ req, resp });
+    else if (urlPath.endsWith('/user/gen-token')) genToken({ req, resp });
+    // else if (urlPath.endsWith('/user/login')) login({ req, resp });
+    else returnErrorResp({ resp })(`The endpoint "${urlPath}" does not exist`);
   }
 }
