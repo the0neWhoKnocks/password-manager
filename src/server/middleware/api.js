@@ -4,26 +4,51 @@ const auth = require('authenticator');
 const parseReq = require('../utils/parseReq');
 const returnErrorResp = require('../utils/returnErrorResp');
 const returnResp = require('../utils/returnResp');
-const { CONFIG_PATH, DATA_PATH } = require('../../constants');
+const { CONFIG_PATH, DATA_PATH, USERS_PATH } = require('../../constants');
 
-const SALT = process.env.SALT || '1337haxor';
+let userConfig;
 
+const loadConfig = (resp) => new Promise((resolve, reject) => {
+  if (existsSync(CONFIG_PATH)) {
+    readFile(CONFIG_PATH, 'utf8', (err, config) => {
+      if (err) reject(err);
+      else {
+        userConfig = JSON.parse(config);
+        userConfig.iv = Buffer.from(userConfig.iv, 'hex');
+        resolve();
+      }
+    });
+  }
+  else resolve();
+}).catch(returnErrorResp({ label: 'Config load failed', resp }));
 
-
-const encrypt = (cipherKey, value) => new Promise((res) => {
-  const key = crypto.scryptSync(cipherKey, SALT, 24);
-  const iv = crypto.randomBytes(16);
+const encrypt = (value, password) => new Promise((resolve) => {
+  const { cipherKey, iv: configIV, salt } = userConfig;
+  let pass = cipherKey;
+  let iv = configIV;
+  
+  if (password) {
+    pass = password;
+    iv = crypto.randomBytes(16);
+  }
+  
+  const key = crypto.scryptSync(pass, salt, 24);
   const cipher = crypto.createCipheriv('aes-192-cbc', key, iv);
   const encrypted = Buffer.concat([
     cipher.update(value),
     cipher.final()
   ]);
 
-  res(`${iv.toString('hex')}:${encrypted.toString('hex')}`);
+  resolve({
+    iv: iv.toString('hex'),
+    value: encrypted.toString('hex'),
+  });
 });
 
-const decrypt = (cipherKey, value) => new Promise((resolve) => {
-  const key = crypto.scryptSync(cipherKey, SALT, 24);
+const decrypt = (value, password) => new Promise((resolve) => {
+  const { cipherKey, salt } = userConfig;
+  const pass = password || cipherKey;
+  const key = crypto.scryptSync(pass, salt, 24);
   const [ivHex, encryptedHex] = value.split(':');
   const iv = Buffer.from(ivHex, 'hex');
   const encrypted = Buffer.from(encryptedHex, 'hex');
@@ -36,44 +61,66 @@ const decrypt = (cipherKey, value) => new Promise((resolve) => {
   resolve(decrypted.toString());
 });
 
+const loadUsers = () => new Promise((resolve, reject) => {
+  if (existsSync(`${DATA_PATH}/users.json`)) {
+    readFile(`${DATA_PATH}/users.json`, (err, users) => {
+      if (err) reject(err);
+      else resolve(JSON.parse(users));
+    });
   }
+  else resolve({});
+});
 
-function createUser({ req, res }) {
 function createUser({ req, resp }) {
   parseReq(req)
-    .then(({ cipherKey, username }) => {
-      if (!cipherKey || !username) {
-        returnErrorResp({ res })(
-          `Looks like you're missing some data.\n  Username: "${username}"\n  Cipher Key: "${cipherKey}"`
+    .then(({ password, username }) => {
+      if (!password || !username) {
+        returnErrorResp({ resp })(
+          `Looks like you're missing some data.\n  Username: "${username}"\n  Password: "${password}"`
         );
       }
       else {
-        const authKey = auth.generateKey();
-        
-        encrypt(cipherKey, username).then((encrypted) => {
-          // TODO - the decrypt is temporary, just fleshing things out
-          console.log('encrypted', encrypted)
-          decrypt(cipherKey, encrypted).then((decrypted) => {
-            console.log('decrypted', decrypted)
-            
-            returnResp({
-              data: { authKey },
-              label: `User for "${username}"`,
-              prefix: 'created',
-              res,
+        Promise.all([
+          encrypt(username),
+          encrypt(JSON.stringify({
+            authKey: auth.generateKey(),
+            password,
+            username,
+          })),
+          loadUsers(),
+        ]).then(([
+          { value: encryptedUsername },
+          { value: encryptedUserData },
+          users,
+        ]) => {
+          if (users[encryptedUsername]) {
+            returnErrorResp({ resp })(`User "${username}" already exists`);
+          }
+          else {
+            const data = {
+              ...users,
+              [encryptedUsername]: encryptedUserData,
+            };
+            writeFile(USERS_PATH, JSON.stringify(data, null, 2), 'utf8', (err) => {
+              if (err) returnErrorResp({ label: 'Create User write file failed', resp })(err);
+              else returnResp({
+                label: `User for "${username}"`,
+                prefix: 'created',
+                resp,
+              });
             });
-          });
+          }
         });
       }
     })
-    .catch(returnErrorResp({ label: 'Create User request parse failed', res }));
+    .catch(returnErrorResp({ label: 'Create User request parse failed', resp }));
 }
 
-function genToken({ req, res }) {
+function genToken({ req, resp }) {
   parseReq(req)
     .then(({ username }) => {
       if (!username) {
-        returnErrorResp({ res })(
+        returnErrorResp({ resp })(
           `Looks like you're missing some data.\n  Username: "${username}"`
         );
       }
@@ -96,6 +143,11 @@ function genToken({ req, res }) {
 //   auth.verifyToken(formattedKey, formattedToken);
 // }
 
+// function addCreds({ req, resp }) {
+//   // encrypt(username, password).then((encrypted) => {
+//   // decrypt(encrypted, password).then((decrypted) => {
+// }
+
 function createConfig({ req, resp }) {
   parseReq(req)
     .then(({ cipherKey, salt }) => {
@@ -105,8 +157,13 @@ function createConfig({ req, resp }) {
         );
       }
       else {
-        writeFile(CONFIG_PATH, JSON.stringify({ cipherKey, salt }), 'utf8', (err) => {
-          if (err) returnErrorResp({ label: 'Create Config write failed', resp });
+        const data = {
+          cipherKey,
+          iv: crypto.randomBytes(16).toString('hex'),
+          salt,
+        };
+        writeFile(CONFIG_PATH, JSON.stringify(data, null, 2), 'utf8', (err) => {
+          if (err) returnErrorResp({ label: 'Create Config write failed', resp })(err);
           else returnResp({ label: 'Config', prefix: 'created', resp });
         });
       }
@@ -118,10 +175,13 @@ module.exports = function apiMiddleware({ req, resp, urlPath }) {
   if (urlPath.startsWith('/api')) {
     resp.preparingAsyncResponse();
     
-    if (urlPath.endsWith('/config/create')) createConfig({ req, resp });
-    else if (urlPath.endsWith('/user/create')) createUser({ req, resp });
-    else if (urlPath.endsWith('/user/gen-token')) genToken({ req, resp });
-    // else if (urlPath.endsWith('/user/login')) login({ req, resp });
-    else returnErrorResp({ resp })(`The endpoint "${urlPath}" does not exist`);
+    loadConfig(resp).then(() => {
+      if (urlPath.endsWith('/config/create')) createConfig({ req, resp });
+      // else if (urlPath.endsWith('/user/add-creds')) addCreds({ req, resp });
+      else if (urlPath.endsWith('/user/create')) createUser({ req, resp });
+      else if (urlPath.endsWith('/user/gen-token')) genToken({ req, resp });
+      // else if (urlPath.endsWith('/user/login')) login({ req, resp });
+      else returnErrorResp({ resp })(`The endpoint "${urlPath}" does not exist`);
+    });
   }
 }

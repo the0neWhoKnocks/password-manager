@@ -28,7 +28,7 @@
     }
     
     form {
-      max-width: 340px;
+      max-width: 400px;
       padding: 1em;
       margin: 0;
     }
@@ -94,6 +94,10 @@
       this._onCancelClick = fn;
     }
     
+    set onCreateSuccess(fn) {
+      this._onCreateSuccess = fn;
+    }
+    
     constructor() {
       super();
       
@@ -109,6 +113,8 @@
             id="createAccount"
             method="POST"
             action="${this.action}"
+            autocomplete="off"
+            spellcheck="false"
           >
             <div class="hr-with-text">
               <span>Create Account</span>
@@ -118,12 +124,12 @@
               <input type="text" name="username" required />
             </label>
             <label class="input-label">
-              Cipher Key
-              <input type="text" name="cipherKey" required />
-              <p class="help-text">
-                Your Cipher Key is a unique value known only to you, and will
-                be used to encode all your data.
-              </p>
+              Password
+              <input type="password" name="password" required />
+            </label>
+            <label class="input-label">
+              Confirm Password
+              <input type="password" name="password-confirmed" required />
             </label>
             <nav>
               <button type="button" value="cancel">Cancel</button>
@@ -138,6 +144,8 @@
         cipherKey: shadowRoot.querySelector('[value="cipherKey"]'),
         dialog: shadowRoot.querySelector('#createAccountDialog'),
         form: shadowRoot.querySelector('#createAccount'),
+        password: shadowRoot.querySelector('[name="password"]'),
+        passwordConfirmed: shadowRoot.querySelector('[name="password-confirmed"]'),
         username: shadowRoot.querySelector('[name="username"]'),
       };
       
@@ -154,11 +162,19 @@
       
       const form = ev.currentTarget;
       
-      window.utils.postData(form.action, form)
-        .then(({ authKey }) => {
-          console.log(authKey);
-        })
-        .catch(({ error }) => { alert(error); });
+      if (this.els.password.value === this.els.passwordConfirmed.value) {
+        window.utils.postData(form.action, form)
+          .then(() => {
+            if (this._onCreateSuccess) this._onCreateSuccess({
+              username: this.els.username.value,
+              password: this.els.password.value,
+            });
+          })
+          .catch(({ error }) => { alert(error); });
+      }
+      else {
+        alert("Your passwords don't match");
+      }
     }
     
     show() {

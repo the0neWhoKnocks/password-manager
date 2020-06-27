@@ -76,6 +76,14 @@
       this._onCreateClick = fn;
     }
     
+    set password(password) {
+      this.els.password.value = password;
+    }
+    
+    set username(username) {
+      this.els.username.value = username;
+    }
+    
     constructor() {
       super();
       
@@ -91,17 +99,19 @@
             id="loginForm"
             method="POST"
             action="/api/user/login"
+            autocomplete="off"
+            spellcheck="false"
           >
             <div class="hr-with-text">
               <span>Log In</span>
             </div>
             <label class="input-label">
               Username
-              <input type="text" name="username" />
+              <input type="text" name="username" required />
             </label>
             <label class="input-label">
               Password
-              <input type="password" name="password" />
+              <input type="password" name="password" required />
             </label>
             <label class="remember-me">
               <input type="checkbox" />
@@ -119,6 +129,7 @@
       this.els = {
         dialog: shadowRoot.querySelector('#loginDialog'),
         createAccountBtn: shadowRoot.querySelector('[value="create"]'),
+        password: shadowRoot.querySelector('[name="password"]'),
         username: shadowRoot.querySelector('[name="username"]'),
       };
       
