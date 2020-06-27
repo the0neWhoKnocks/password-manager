@@ -1,15 +1,12 @@
-const { existsSync } = require('fs');
+const { existsSync, readFile, writeFile } = require('fs');
 const crypto = require('crypto');
 const auth = require('authenticator');
-const mkdirp = require('mkdirp');
 const parseReq = require('../utils/parseReq');
-const { DATA_PATH } = require('../../constants');
+const { CONFIG_PATH, DATA_PATH } = require('../../constants');
 
 const SALT = process.env.SALT || '1337haxor';
 
-function ensureFolderStructure() {
-  if (!existsSync(DATA_PATH)) mkdirp.sync(DATA_PATH);
-}
+
 
 const encrypt = (cipherKey, value) => new Promise((res) => {
   const key = crypto.scryptSync(cipherKey, SALT, 24);
@@ -120,12 +117,32 @@ function genToken({ req, res }) {
 //   auth.verifyToken(formattedKey, formattedToken);
 // }
 
+function createConfig({ req, res }) {
+  parseReq(req)
+    .then(({ cipherKey, salt }) => {
+      if (!cipherKey || !salt) {
+        returnErrorResp({ res })(
+          `Looks like you're missing some data.\n  Cipher Key: "${cipherKey}"\n  Salt: "${salt}"`
+        );
+      }
+      else {
+        writeFile(CONFIG_PATH, JSON.stringify({ cipherKey, salt }), 'utf8', (err) => {
+          if (err) returnErrorResp({ label: 'Create Config write failed', res });
+          else returnResp({ label: 'Config', prefix: 'created', res });
+        });
+      }
+    })
+    .catch(returnErrorResp({ label: 'Create Config request parse failed', res }));
+}
+
 module.exports = function apiMiddleware({ req, res, urlPath }) {
   if (urlPath.startsWith('/api')) {
-    ensureFolderStructure();
+    res.preparingAsyncResponse();
     
-    if (urlPath.endsWith('/user/create')) createUser({ req, res });
+    if (urlPath.endsWith('/config/create')) createConfig({ req, res });
+    else if (urlPath.endsWith('/user/create')) createUser({ req, res });
     else if (urlPath.endsWith('/user/gen-token')) genToken({ req, res });
     // else if (urlPath.endsWith('/user/login')) login({ req, res });
+    else returnErrorResp({ res })(`The endpoint "${urlPath}" does not exist`);
   }
 }

@@ -3,7 +3,7 @@ module.exports = function staticMiddleware({
   urlPath,
 }) {
   if (/^\/(css|js|imgs)\/.*/.test(urlPath)) {
-    res.preparingResponse = true;
+    res.preparingAsyncResponse();
     
     const { readFile } = require('fs');
     const { CLIENT_PATH } = require('../../constants');
