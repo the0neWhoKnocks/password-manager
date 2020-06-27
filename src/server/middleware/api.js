@@ -46,12 +46,17 @@ const encrypt = (value, password) => new Promise((resolve) => {
 });
 
 const decrypt = (value, password) => new Promise((resolve) => {
-  const { cipherKey, salt } = userConfig;
-  const pass = password || cipherKey;
+  const { cipherKey, iv: configIV, salt } = userConfig;
+  let pass = cipherKey;
+  let ivHex = configIV;
+  
+  if (password) {
+    pass = password;
+  }
+  
   const key = crypto.scryptSync(pass, salt, 24);
-  const [ivHex, encryptedHex] = value.split(':');
   const iv = Buffer.from(ivHex, 'hex');
-  const encrypted = Buffer.from(encryptedHex, 'hex');
+  const encrypted = Buffer.from(value, 'hex');
   const decipher = crypto.createDecipheriv('aes-192-cbc', key, iv);
   const decrypted = Buffer.concat([
     decipher.update(encrypted),
@@ -118,30 +123,49 @@ function createUser({ req, resp }) {
 
 function genToken({ req, resp }) {
   parseReq(req)
-    .then(({ username }) => {
-      if (!username) {
-        returnErrorResp({ resp })(
-          `Looks like you're missing some data.\n  Username: "${username}"`
-        );
-      }
-      else {
-        // TODO - see if the user exists, if so, generate token from their authKey
-        // const token = auth.generateToken(authKey); 
-        // 
-        // returnResp({
-        //   data: { authKey },
-        //   label: `User for "${username}"`,
-        //   prefix: 'created',
-        //   resp,
-        // });
-      }
+    .then(({ authKey }) => {
+      returnResp({
+        data: { token: auth.generateToken(authKey) },
+        resp,
+      });
     })
     .catch(returnErrorResp({ label: 'Gen Token request parse failed', resp }));
 }
 
-// function login({ req, resp }) {
-//   auth.verifyToken(formattedKey, formattedToken);
-// }
+function login({ req, resp }) {
+  parseReq(req)
+    .then(({ password, username }) => {
+      if (!password || !username) {
+        returnErrorResp({ resp })(
+          `Looks like you're missing some data.\n  Username: "${username}"\n  Password: "${password}"`
+        );
+      }
+      else {
+        Promise.all([
+          encrypt(username),
+          loadUsers(),
+        ]).then(([
+          { value: encryptedUsername },
+          users,
+        ]) => {
+          if (!users[encryptedUsername]) returnErrorResp({ resp })(
+            `An account for "${username}" doesn't exist.`
+          );
+          else {
+            decrypt(users[encryptedUsername]).then((decryptedUserData) => {
+              returnResp({
+                data: JSON.parse(decryptedUserData),
+                resp,
+              });
+            });
+          }
+        });
+      }
+    })
+    .catch(returnErrorResp({ label: 'Gen Token request parse failed', resp }));
+  
+  // auth.verifyToken(formattedKey, formattedToken);
+}
 
 // function addCreds({ req, resp }) {
 //   // encrypt(username, password).then((encrypted) => {
@@ -180,7 +204,7 @@ module.exports = function apiMiddleware({ req, resp, urlPath }) {
       // else if (urlPath.endsWith('/user/add-creds')) addCreds({ req, resp });
       else if (urlPath.endsWith('/user/create')) createUser({ req, resp });
       else if (urlPath.endsWith('/user/gen-token')) genToken({ req, resp });
-      // else if (urlPath.endsWith('/user/login')) login({ req, resp });
+      else if (urlPath.endsWith('/user/login')) login({ req, resp });
       else returnErrorResp({ resp })(`The endpoint "${urlPath}" does not exist`);
     });
   }

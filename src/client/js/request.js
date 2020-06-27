@@ -1,12 +1,12 @@
 if (!window.utils) window.utils = {};
 
-window.utils.postData = function postData(url, form) {
+window.utils.postData = function postData(url, obj) {
   return window.fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(window.utils.serializeForm(form)),
+    body: JSON.stringify((obj instanceof HTMLElement) ? window.utils.serializeForm(obj): obj),
   })
     .then((resp) => {
       return new Promise((res, rej) => {
