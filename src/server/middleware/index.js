@@ -7,6 +7,7 @@ const gate = (fn) => (opts) => {
 };
 
 module.exports = [
+  gate(require('./inspect')),
   gate(require('./static')),
   gate(require('./api')),
   gate(require('./view')),
