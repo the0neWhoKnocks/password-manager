@@ -11,7 +11,9 @@ module.exports = function staticMiddleware({
     const filePath = `${CLIENT_PATH}${urlPath}`;
     readFile(filePath, (err, file) => {
       if (err) {
-        console.error('[ERROR]', err);
+        // Chrome likes to hold on to favicon's for localhost, so we're not
+        // going to worry about them missing for now.
+        if (!filePath.endsWith('favicon.ico')) console.error('[ERROR]', err);
         resp.statusCode = 500;
         resp.statusMessage = err;
         resp.end();
