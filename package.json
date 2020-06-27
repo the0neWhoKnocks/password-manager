@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node ./src/server",
-    "start:dev": "concurrently --kill-others -p \"[ {name} ]\" -n SERVER -c black.bgGreen \"node ./watcher.js\"",
+    "start:dev": "concurrently --kill-others -p \"[ {name} ]\" -n SERVER -c black.bgGreen \"NODE_ENV=dev node ./watcher.js\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
