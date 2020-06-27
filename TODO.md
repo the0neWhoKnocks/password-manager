@@ -17,6 +17,8 @@
       - [ ] Display a preview of the credentials below the inputs
       - ‎[ ] Store all data in a JSON file. Each entry, UID with encoded Object of all entry data. When the User exports, it decodes everything. 
     - [ ] Export Credentials (button): exports JSON with basic info that User entered, nothing specific to the App
+    - [ ] Log Out
+    - [ ] Delete Account
   - List of credentials
     - [ ] List item contains icon & label
     - [ ] Credential item (popup once user clicks on list item)
