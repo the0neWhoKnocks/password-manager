@@ -11,7 +11,7 @@ function ensureFolderStructure() {
 
 const configExists = () => existsSync(CONFIG_PATH);
 
-module.exports = function viewMiddleware({ res }) {
+module.exports = function viewMiddleware({ resp }) {
   ensureFolderStructure();
   
   const NEEDS_INITAL_SETUP = !configExists();
@@ -24,7 +24,7 @@ module.exports = function viewMiddleware({ res }) {
     '/js/CustomLoginForm.js',
   ];
   
-  res.end(`
+  resp.end(`
     <html>
       <head>
         <title>Password Manager</title>
