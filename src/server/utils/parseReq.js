@@ -1,4 +1,4 @@
-const parseReq = (req) => new Promise((resolve) => {
+const parseReq = (req) => new Promise((resolve, reject) => {
   if (/^(DELETE|POST)$/i.test(req.method)) {
     let body = '';
 
@@ -7,7 +7,8 @@ const parseReq = (req) => new Promise((resolve) => {
     });
 
     req.on('end', () => {
-      resolve(JSON.parse(body));
+      try { resolve(JSON.parse(body)); }
+      catch(err) { reject(err); }
     });
   }
 });

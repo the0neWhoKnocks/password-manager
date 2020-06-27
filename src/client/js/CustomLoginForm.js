@@ -118,8 +118,8 @@
       
       this.els = {
         dialog: shadowRoot.querySelector('#loginDialog'),
-        userName: shadowRoot.querySelector('[name="username"]'),
         createAccountBtn: shadowRoot.querySelector('[value="create"]'),
+        username: shadowRoot.querySelector('[name="username"]'),
       };
       
       this.handleCreateClick = this.handleCreateClick.bind(this);
@@ -132,7 +132,7 @@
     show() {
       if (!this.parentNode) document.body.appendChild(this);
       this.els.dialog.show();
-      this.els.userName.focus();
+      this.els.username.focus();
       
       this.els.createAccountBtn.addEventListener('click', this.handleCreateClick);
     }
