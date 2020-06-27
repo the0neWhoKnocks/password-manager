@@ -6,6 +6,8 @@ const { SERVER_PORT } = require('../constants');
 const server = http.createServer((req, res) => {
   const { pathname: urlPath } = url.parse(req.url);
   
+  res.preparingAsyncResponse = () => { res.sendingAsyncResponse = true; };
+  
   for (let i=0; i<middleware.length; i++) {
     middleware[i]({ req, res, urlPath });
   }
