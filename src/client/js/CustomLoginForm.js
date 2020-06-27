@@ -72,8 +72,20 @@
   `;
 
   class CustomLoginForm extends HTMLElement {
+    get action() {
+      return this.getAttribute('action');
+    }
+
+    set action(_action) {
+      this.els.form.setAttribute('action', _action);
+    }
+    
     set onCreateClick(fn) {
       this._onCreateClick = fn;
+    }
+    
+    set onLoginSuccess(fn) {
+      this._onLoginSuccess = fn;
     }
     
     set password(password) {
@@ -98,7 +110,7 @@
             slot="dialogBody"
             id="loginForm"
             method="POST"
-            action="/api/user/login"
+            action="${this.action}"
             autocomplete="off"
             spellcheck="false"
           >
@@ -129,15 +141,29 @@
       this.els = {
         dialog: shadowRoot.querySelector('#loginDialog'),
         createAccountBtn: shadowRoot.querySelector('[value="create"]'),
+        form: shadowRoot.querySelector('#loginForm'),
         password: shadowRoot.querySelector('[name="password"]'),
         username: shadowRoot.querySelector('[name="username"]'),
       };
       
       this.handleCreateClick = this.handleCreateClick.bind(this);
+      this.handleSubmit = this.handleSubmit.bind(this);
     }
     
     handleCreateClick() {
       if (this._onCreateClick) this._onCreateClick();
+    }
+    
+    handleSubmit(ev) {
+      ev.preventDefault();
+      
+      const form = ev.currentTarget;
+      
+      window.utils.postData(form.action, form)
+        .then((resp) => {
+          if (this._onLoginSuccess) this._onLoginSuccess(resp);
+        })
+        .catch(({ error }) => { alert(error); });
     }
     
     show() {
@@ -146,10 +172,12 @@
       this.els.username.focus();
       
       this.els.createAccountBtn.addEventListener('click', this.handleCreateClick);
+      this.els.form.addEventListener('submit', this.handleSubmit);
     }
     
     close() {
       this.els.createAccountBtn.removeEventListener('click', this.handleCreateClick);
+      this.els.form.removeEventListener('submit', this.handleSubmit);
       
       this.els.dialog.onClose = () => {
         this.remove();
