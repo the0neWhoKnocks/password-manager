@@ -2,6 +2,8 @@ const { existsSync, readFile, writeFile } = require('fs');
 const crypto = require('crypto');
 const auth = require('authenticator');
 const parseReq = require('../utils/parseReq');
+const returnErrorResp = require('../utils/returnErrorResp');
+const returnResp = require('../utils/returnResp');
 const { CONFIG_PATH, DATA_PATH } = require('../../constants');
 
 const SALT = process.env.SALT || '1337haxor';
@@ -34,31 +36,7 @@ const decrypt = (cipherKey, value) => new Promise((resolve) => {
   resolve(decrypted.toString());
 });
 
-const returnResp = ({ data, label, prefix = '', resp }) => {
-  if (!resp) throw Error('Missing `resp`');
-  else {
-    console.log(`[${prefix.toUpperCase()}] ${label}`);
-    resp.setHeader('Content-Type', 'application/json');
-    resp.end(JSON.stringify(data || {}));
   }
-};
-
-const returnErrorResp = ({ label, resp }) => (err) => {
-  if (!resp) throw Error('Missing `resp`');
-  else {
-    let errMsg = err;
-    resp.statusCode = 500;
-    resp.statusMessage = 'Server Error';
-    
-    if (err instanceof Error) {
-      console.log(`[ERROR] ${label}:`, err);
-      errMsg = err.stack;
-    }
-    
-    resp.setHeader('Content-Type', 'application/json');
-    resp.end(JSON.stringify({ error: `${errMsg}` }));
-  }
-};
 
 function createUser({ req, res }) {
 function createUser({ req, resp }) {
