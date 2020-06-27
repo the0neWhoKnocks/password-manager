@@ -1,5 +1,6 @@
 (() => {
   const ANIM_DURATION = 300;
+  const MODIFIER__CLOSING = 'closing';
   const MODIFIER__HIDE = 'hide';
   const MODIFIER__MODAL = 'is--modal';
   const MODIFIER__SHOW = 'show';
@@ -52,7 +53,7 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -20%);
+      transform: translate(-50%, -70%);
       box-shadow: 0 0.75em 2em 0.25em rgba(0, 0, 0, 0.75);
       background: #eee;
       opacity: 0;
@@ -61,6 +62,10 @@
     .dialog.${MODIFIER__SHOW} {
       opacity: 1;
       transform: translate(-50%, -50%);
+    }
+    .dialog.${MODIFIER__SHOW}.${MODIFIER__CLOSING} {
+      opacity: 0;
+      transform: translate(-50%, -30%);
     }
     
     .dialog__nav {
@@ -192,10 +197,12 @@
         window.removeEventListener('keydown', this.handleKeyDown);
       }
       
-      this.els.dialog.classList.remove(MODIFIER__SHOW);
+      this.els.dialog.classList.add(MODIFIER__CLOSING);
       this.els.dialogBGMask.classList.remove(MODIFIER__SHOW);
       
       setTimeout(() => {
+        this.els.dialog.classList.remove(MODIFIER__SHOW, MODIFIER__CLOSING);
+        
         if (this._onClose) this._onClose();
         delete window.customDialog;
         
