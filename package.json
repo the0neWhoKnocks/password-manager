@@ -15,8 +15,10 @@
   "author": "Trevor Lemon",
   "license": "MIT",
   "dependencies": {
+    "authenticator": "^1.1.5",
     "etag": "^1.8.1",
-    "mime-types": "^2.1.27"
+    "mime-types": "^2.1.27",
+    "mkdirp": "^1.0.4"
   },
   "devDependencies": {
     "browser-sync": "^2.26.7",

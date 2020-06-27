@@ -7,7 +7,7 @@ const server = http.createServer((req, res) => {
   const { pathname: urlPath } = url.parse(req.url);
   
   for (let i=0; i<middleware.length; i++) {
-    middleware[i]({ res, urlPath });
+    middleware[i]({ req, res, urlPath });
   }
 });
 
