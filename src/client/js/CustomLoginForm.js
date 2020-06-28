@@ -68,6 +68,7 @@
     .remember-me {
       text-align: right;
       user-select: none;
+      cursor: pointer;
     }
   `;
 
@@ -90,6 +91,10 @@
     
     set password(password) {
       this.els.password.value = password;
+    }
+    
+    get rememberMe() {
+      return this.els.rememberMe.checked;
     }
     
     set username(username) {
@@ -126,7 +131,7 @@
               <input type="password" name="password" required />
             </label>
             <label class="remember-me">
-              <input type="checkbox" />
+              <input type="checkbox" id="rememberMe" />
               Remember Me
             </label>
             <button value="login">Log In</button>
@@ -143,6 +148,7 @@
         createAccountBtn: shadowRoot.querySelector('[value="create"]'),
         form: shadowRoot.querySelector('#loginForm'),
         password: shadowRoot.querySelector('[name="password"]'),
+        rememberMe: shadowRoot.querySelector('#rememberMe'),
         username: shadowRoot.querySelector('[name="username"]'),
       };
       
