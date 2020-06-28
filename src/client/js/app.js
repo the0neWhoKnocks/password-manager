@@ -10,16 +10,9 @@ else {
     loginForm.close();
     createAccountForm.show();
   };
-  loginForm.onLoginSuccess = ({ authKey, ...userData }) => {
+  loginForm.onLoginSuccess = (userData) => {
     loginForm.close();
     console.log(userData);
-    
-    // TODO open a 2FA modal
-    window.utils.postData('/api/user/gen-token', { authKey })
-      .then((token) => {
-        console.log(token);
-      })
-      .catch((err) => alert(err));
   };
   
   const createAccountForm = document.createElement('custom-create-account-form');
