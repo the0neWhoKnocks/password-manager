@@ -1,14 +1,18 @@
 const storage = {
   key: 'pass_man',
-  get: function getStorageData() {
+  get: function getStorageData(prop) {
+    let data;
     let storageType;
     
     if (window.sessionStorage[this.key]) storageType = 'sessionStorage';
     else if (window.localStorage[this.key]) storageType = 'localStorage';
     
-    return (storageType)
-      ? JSON.parse(window[storageType].getItem(this.key))
-      : null;
+    if (storageType) {
+      data = JSON.parse(window[storageType].getItem(this.key));
+      if (prop) data = data[prop];
+    }
+    
+    return data;
   },
   set: function setStorageData(data, useLocal) {
     let storageType;
@@ -23,7 +27,11 @@ const storage = {
       window.localStorage.removeItem(this.key);
     }
     
-    window[storageType].setItem(this.key, JSON.stringify(data));
+    const currentData = window[storageType].getItem(this.key) || '{}';
+    window[storageType].setItem(this.key, JSON.stringify({
+      ...JSON.parse(currentData),
+      ...data,
+    }));
   },
 };
 
@@ -66,5 +74,5 @@ function showCredentials() {
 }
 
 if (window.NEEDS_INITAL_SETUP) showConfigSetUp();
-else if (storage.get()) showCredentials();
+else if (storage.get('userData')) showCredentials();
 else showLogin();
