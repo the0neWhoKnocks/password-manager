@@ -1,9 +1,9 @@
 # TODO
 
 - Start form
-  - [ ] + Create Account (button)
+  - [x] + Create Account (button)
     - Inputs: Username, Password, Cipher Key (unique value that all credentials will be encoded with)
-  - [ ] Login (button)
+  - [x] Login (button)
     - Inputs: Username, Password
     - Checkbox: Remember Me
       - [ ] ‎When checked, use `localStorage`, else, use `sessionStorage`
