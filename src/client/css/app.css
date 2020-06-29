@@ -3,6 +3,7 @@
 }
 
 html, body {
+  font: 16px Helvetica, Arial, sans-serif;
   padding: 0;
   margin: 0;
 }
@@ -14,6 +15,8 @@ html, body {
   position: absolute;
   top: 0;
   left: 0;
+  user-select: none;
+  pointer-events: none;
 }
 .doors::before,
 .doors::after {
@@ -34,4 +37,38 @@ html, body {
 }
 .doors.open::after {
   transform: translateX(100%);
+}
+
+.credentials {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.credentials__top-nav {
+  background: #ccc;
+  box-shadow: 0 -2rem 2rem 2rem rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.credentials__body {
+  height: 100%;
+  overflow: auto;
+  background: #eee;
+  position: relative;
+}
+.credentials__body::before {
+  content: 'No credentials present. Go to Credentials > Add';
+  padding: 1em;
+  border: solid 1px #aaa;
+  border-radius: 0.5em;
+  box-shadow: 0 9px 15px 0px rgba(0, 0, 0, 0.25);
+  background: #fff;
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translateX(-50%);
 }

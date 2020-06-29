@@ -40,7 +40,25 @@ function showLogin() {
 }
 
 function showCredentials() {
-  console.log('show creds');
+  const credentialsEl = document.createElement('div');
+  credentialsEl.classList.add('credentials');
+  credentialsEl.innerHTML = `
+    <nav class="credentials__top-nav">
+      <custom-drop-down label="Credentials">
+        <button slot="ddItems" type="button">Add</button>
+        <button slot="ddItems" type="button">Export</button>
+        <button slot="ddItems" type="button">Import</button>
+      </custom-drop-down>
+      <custom-drop-down label="User">
+        <button slot="ddItems" type="button">Delete Account</button>
+        <button slot="ddItems" type="button">Log Out</button>
+      </custom-drop-down>
+    </nav>
+    <div class="credentials__body">
+      
+    </div>
+  `;
+  document.body.appendChild(credentialsEl);
 }
 
 if (window.NEEDS_INITAL_SETUP) showConfigSetUp();
