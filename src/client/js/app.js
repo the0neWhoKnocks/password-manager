@@ -5,6 +5,10 @@ function showConfigSetUp() {
 }
 
 function showLogin() {
+  const doors = document.createElement('div');
+  doors.classList.add('doors');
+  document.body.appendChild(doors);
+  
   const loginForm = document.createElement('custom-login-form');
   loginForm.action = '/api/user/login';
   loginForm.onCreateClick = () => {
@@ -14,6 +18,9 @@ function showLogin() {
   loginForm.onLoginSuccess = (userData) => {
     loginForm.close();
     window.utils.storage.set({ userData }, loginForm.rememberMe);
+    
+    showCredentials();
+    doors.classList.add('open');
   };
   
   const createAccountForm = document.createElement('custom-create-account-form');
