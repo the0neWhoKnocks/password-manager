@@ -1,8 +1,9 @@
 module.exports = function staticMiddleware({
+  req,
   resp,
   urlPath,
 }) {
-  if (/^\/(css|js|imgs)\/.*/.test(urlPath)) {
+  if (/^\/(css|js|imgs)\/.*/.test(urlPath)) {  
     resp.preparingAsyncResponse();
     
     const { readFile } = require('fs');
@@ -21,14 +22,23 @@ module.exports = function staticMiddleware({
       else {
         const etag = require('etag');
         const mime = require('mime-types');
+        const tag = etag(file);
         
         resp.setHeader('Content-Type', mime.lookup(`${CLIENT_PATH}${urlPath}`));
-        resp.setHeader('ETag', etag(file));
-        if (filePath.includes('/imgs')) {
-          resp.setHeader('Cache-Control', `max-age=${60 * 60 * 24 * 365}`);
-        }
         
-        resp.end(file);
+        if (req.headers['if-none-match'] === tag) {
+          resp.statusCode = 304;
+          resp.end('');
+        }
+        else {
+          resp.setHeader('ETag', tag);
+          // `no-cache` is misleading. It doesn’t mean "do not cache". This
+          // tells the Browser to cache the file but not to use it until it 
+          // checks with the Server to validate we have the latest version. 
+          // This validation is done with the ETag header.
+          resp.setHeader('Cache-Control', `private, no-cache, max-age=${60 * 60 * 24 * 365}`);
+          resp.end(file);
+        }
       }
     });
   }
