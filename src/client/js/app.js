@@ -51,14 +51,19 @@ function showCredentials() {
       </custom-drop-down>
       <custom-drop-down label="User">
         <button slot="ddItems" type="button">Delete Account</button>
-        <button slot="ddItems" type="button">Log Out</button>
+        <button slot="ddItems" type="button" id="logout">Log Out</button>
       </custom-drop-down>
     </nav>
-    <div class="credentials__body">
-      
-    </div>
+    <div class="credentials__body"></div>
   `;
   document.body.appendChild(credentialsEl);
+  
+  const logoutBtn = document.querySelector('#logout');
+  
+  logoutBtn.addEventListener('click', () => {
+    window.utils.storage.clear();
+    window.location.reload();
+  });
 }
 
 if (window.NEEDS_INITAL_SETUP) showConfigSetUp();
