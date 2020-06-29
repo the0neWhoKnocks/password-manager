@@ -2,6 +2,14 @@ if (!window.utils) window.utils = {};
 
 window.utils.storage = {
   key: 'pass_man',
+  clear: function clearStorageData() {
+    let storageType;
+    
+    if (window.sessionStorage[this.key]) storageType = 'sessionStorage';
+    else if (window.localStorage[this.key]) storageType = 'localStorage';
+    
+    window[storageType].removeItem(this.key)
+  },
   get: function getStorageData(prop) {
     let data;
     let storageType;

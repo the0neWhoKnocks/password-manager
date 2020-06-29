@@ -17,6 +17,7 @@ html, body {
   left: 0;
   user-select: none;
   pointer-events: none;
+  z-index: 10;
 }
 .doors::before,
 .doors::after {
@@ -24,7 +25,7 @@ html, body {
   width: 50%;
   height: 100%;
   display: inline-block;
-  transition: transform 200ms;
+  transition: transform 500ms;
 }
 .doors::before {
   background: linear-gradient(90deg, #c0c0c0 90%, #949494 94%, #c0c0c0 95%, #c0c0c0 99%, #adadad 100%);
