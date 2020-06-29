@@ -18,6 +18,7 @@ module.exports = function viewMiddleware({ resp }) {
   const headScripts = [
     '/js/serializeForm.js',
     '/js/request.js',
+    '/js/storage.js',
     '/js/CustomDialog.js',
     '/js/CustomCreateAccountForm.js',
     '/js/CustomCreateConfigForm.js',
