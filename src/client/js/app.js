@@ -45,7 +45,7 @@ function showCredentials() {
   credentialsEl.innerHTML = `
     <nav class="credentials__top-nav">
       <custom-drop-down label="Credentials">
-        <button slot="ddItems" type="button">Add</button>
+        <button slot="ddItems" type="button" id="addCreds">Add</button>
         <button slot="ddItems" type="button">Export</button>
         <button slot="ddItems" type="button">Import</button>
       </custom-drop-down>
@@ -59,10 +59,49 @@ function showCredentials() {
   document.body.appendChild(credentialsEl);
   
   const logoutBtn = document.querySelector('#logout');
+  const addCredsBtn = document.querySelector('#addCreds');
   
   logoutBtn.addEventListener('click', () => {
     window.utils.storage.clear();
     window.location.reload();
+  });
+  addCredsBtn.addEventListener('click', () => {
+    const credentialsDialog = document.createElement('custom-dialog');
+    credentialsDialog.title = 'Add Credentials';
+    credentialsDialog.innerHTML = `
+      <form
+        slot="dialogBody"
+        class="add-creds-form"
+        action="/api/user/add-creds"
+        method="POST"
+        autocomplete="off"
+      >
+        <label class="input-label">
+          Label
+          <input type="text" name="label" required />
+        </label>
+        <label class="input-label">
+          Website
+          <input type="text" name="website" />
+        </label>
+        <label class="input-label">
+          Email
+          <input type="text" name="email" autocomplete="off" />
+        </label>
+        <label class="input-label">
+          Username
+          <input type="text" name="username" />
+        </label>
+        <label class="input-label">
+          Password
+          <input type="text" name="password" />
+        </label>
+        <button type="button" id="addCustomCred">Add Custom</button>
+        <button>Create</button>
+      </form>
+    `;
+    
+    credentialsDialog.show();
   });
 }
 
