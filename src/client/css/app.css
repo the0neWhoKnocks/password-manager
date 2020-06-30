@@ -8,6 +8,23 @@ html, body {
   margin: 0;
 }
 
+form {
+  margin: 0;
+}
+form > *:not(:last-child) {
+  margin-bottom: 0.5em;
+}
+
+button {
+  color: #fff;
+  width: 100%;
+  padding: 0.75em 1em;
+  border: none;
+  border-radius: 0.25em;
+  background: #000;
+  cursor: pointer;
+}
+
 .doors {
   width: 100%;
   height: 100%;
@@ -38,6 +55,17 @@ html, body {
 }
 .doors.open::after {
   transform: translateX(100%);
+}
+
+.input-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.input-label input {
+  padding: 0.5em;
+  margin-left: 0.5em;
 }
 
 .credentials {
@@ -72,4 +100,15 @@ html, body {
   top: 25%;
   left: 50%;
   transform: translateX(-50%);
+}
+
+.add-creds-form {
+  padding: 1em;
+}
+#addCustomCred {
+  width: 100%;
+  color: #000;
+  margin-bottom: 2em;
+  border: solid 1px;
+  background: #eee;
 }

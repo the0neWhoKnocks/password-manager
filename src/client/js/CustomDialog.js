@@ -4,6 +4,10 @@
   const MODIFIER__HIDE = 'hide';
   const MODIFIER__MODAL = 'is--modal';
   const MODIFIER__SHOW = 'show';
+  const BORDER_COLOR = '#000';
+  const BODY_COLOR = '#eee';
+  const TITLE_BG_COLOR = '#333';
+  const TITLE_TEXT_COLOR = '#eee';
   const STYLES = `
     *, *::after, *::before {
       box-sizing: border-box;
@@ -47,15 +51,15 @@
     .dialog {
       overflow: hidden;
       padding: 0;
-      border: solid 1px;
+      border: solid 4px var(--dialog-border-color, ${BORDER_COLOR});
       border-radius: 0.5em;
       margin: 0;
+      background: var(--dialog-border-color, ${BORDER_COLOR});
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -70%);
       box-shadow: 0 0.75em 2em 0.25em rgba(0, 0, 0, 0.75);
-      background: #eee;
       opacity: 0;
       transition: opacity ${ANIM_DURATION}ms, transform ${ANIM_DURATION}ms;
     }
@@ -76,17 +80,21 @@
     
     .dialog__title {
       width: 100%;
-      color: #eee;
+      color: var(--dialog-title-text-color, ${TITLE_TEXT_COLOR});
       padding: 0.5em;
       padding-right: 1em;
-      background: #333;
+      background: var(--dialog-title-bg-color, ${TITLE_BG_COLOR});
+    }
+    
+    .dialog__body {
+      background: var(--dialog-body-color, ${BODY_COLOR});
     }
     
     .dialog__close-btn {
-      color: #eee;
+      color: var(--dialog-title-text-color, ${TITLE_TEXT_COLOR});
       padding: 0 1em;
       border: none;
-      background: #333;
+      background: var(--dialog-title-bg-color, ${TITLE_BG_COLOR});
     }
     .${MODIFIER__MODAL} .dialog__close-btn {
       display: none;
@@ -98,8 +106,25 @@
   `;
 
   class CustomDialog extends HTMLElement {
+    static get observedAttributes() {
+      return [
+        'modal',
+        'title',
+      ];
+    }
+    
     set content(content) {
       this.els.dialogBody.innerHTML = content;
+    }
+    
+    get modal() {
+      return this.hasAttribute('modal');
+    }
+    
+    set modal(isModal) {
+      (isModal)
+        ? this.setAttribute('modal', '')
+        : this.removeAttribute('modal');
     }
     
     set onClose(fn) {
@@ -108,6 +133,10 @@
     
     set styles(styles) {
       this.els.userStyles.textContent = styles;
+    }
+    
+    get title() {
+      return this.getAttribute('title') || '';
     }
     
     set title(title) {
@@ -120,7 +149,6 @@
       this.attachShadow({ mode: 'open' });
       
       const { shadowRoot } = this;
-      this.isModal = this.hasAttribute('modal');
       
       shadowRoot.innerHTML = `
         <style>${STYLES}</style>
@@ -128,13 +156,13 @@
         
         <div class="dialog-mask"></div>
         <dialog
-          class="dialog ${this.isModal ? MODIFIER__MODAL : ''}"
+          class="dialog ${this.modal ? MODIFIER__MODAL : ''}"
           tabindex="0"
           open
         >
           <nav class="dialog__nav">
             <div class="dialog__title">
-              <slot name="dialogTitle"></slot>
+              <slot name="dialogTitle">${this.title}</slot>
             </div>
             <button type="button" class="dialog__close-btn">&#10005;</button>
           </nav>
@@ -152,7 +180,7 @@
         dialogBGMask: shadowRoot.querySelector('.dialog-mask'),
         dialogBody: shadowRoot.querySelector('.dialog__body'),
         dialogNav: shadowRoot.querySelector('.dialog__nav'),
-        dialogTitle: shadowRoot.querySelector('.dialog__title'),
+        dialogTitle: shadowRoot.querySelector('[name="dialogTitle"]'),
         userStyles: shadowRoot.querySelector('#userStyles'),
       };
       
@@ -160,7 +188,7 @@
       this.handleKeyDown = this.handleKeyDown.bind(this);
       this.handleMaskClick = this.handleMaskClick.bind(this);
     }
-    
+
     handleCloseClick() { this.close(); }
     handleMaskClick() { this.close(); }
     
@@ -178,7 +206,7 @@
       if (!this.parentNode) document.body.appendChild(this);
       this.els.dialog.focus();
       
-      if (!this.isModal) {
+      if (!this.modal) {
         this.els.closeBtn.addEventListener('click', this.handleCloseClick);
         this.els.dialogBGMask.addEventListener('click', this.handleMaskClick);
         window.addEventListener('keydown', this.handleKeyDown);
@@ -191,7 +219,7 @@
     }
     
     close() {
-      if (!this.isModal) {
+      if (!this.modal) {
         this.els.closeBtn.removeEventListener('click', this.handleCloseClick);
         this.els.dialogBGMask.removeEventListener('click', this.handleMaskClick);
         window.removeEventListener('keydown', this.handleKeyDown);
