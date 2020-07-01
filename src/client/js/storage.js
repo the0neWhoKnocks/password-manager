@@ -8,7 +8,7 @@ window.utils.storage = {
     if (window.sessionStorage[this.key]) storageType = 'sessionStorage';
     else if (window.localStorage[this.key]) storageType = 'localStorage';
     
-    window[storageType].removeItem(this.key)
+    if (storageType) window[storageType].removeItem(this.key)
   },
   get: function getStorageData(prop) {
     let data;
