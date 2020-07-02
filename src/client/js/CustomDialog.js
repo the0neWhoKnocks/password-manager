@@ -106,17 +106,6 @@
   `;
 
   class CustomDialog extends HTMLElement {
-    static get observedAttributes() {
-      return [
-        'modal',
-        'title',
-      ];
-    }
-    
-    set content(content) {
-      this.els.dialogBody.innerHTML = content;
-    }
-    
     get modal() {
       return this.hasAttribute('modal');
     }
@@ -125,14 +114,12 @@
       (isModal)
         ? this.setAttribute('modal', '')
         : this.removeAttribute('modal');
+      
+      this.displayTitleBar();
     }
     
     set onClose(fn) {
       this._onClose = fn;
-    }
-    
-    set styles(styles) {
-      this.els.userStyles.textContent = styles;
     }
     
     get title() {
@@ -140,7 +127,17 @@
     }
     
     set title(title) {
+      this.setAttribute('title', title);
       this.els.dialogTitle.innerHTML = title;
+      this.displayTitleBar();
+    }
+    
+    displayTitleBar() {
+      if (this.modal) this.els.closeBtn.classList.add(MODIFIER__HIDE);
+      else this.els.closeBtn.classList.remove(MODIFIER__HIDE);
+      
+      if (this.modal && !this.title) this.els.dialogNav.classList.add(MODIFIER__HIDE);
+      else this.els.dialogNav.classList.remove(MODIFIER__HIDE);
     }
     
     constructor() {
@@ -152,7 +149,6 @@
       
       shadowRoot.innerHTML = `
         <style>${STYLES}</style>
-        <style id="userStyles"></style>
         
         <div class="dialog-mask"></div>
         <dialog
@@ -178,7 +174,6 @@
         closeBtn: shadowRoot.querySelector('.dialog__close-btn'),
         dialog: shadowRoot.querySelector('.dialog'),
         dialogBGMask: shadowRoot.querySelector('.dialog-mask'),
-        dialogBody: shadowRoot.querySelector('.dialog__body'),
         dialogNav: shadowRoot.querySelector('.dialog__nav'),
         dialogTitle: shadowRoot.querySelector('[name="dialogTitle"]'),
         userStyles: shadowRoot.querySelector('#userStyles'),
@@ -187,6 +182,17 @@
       this.handleCloseClick = this.handleCloseClick.bind(this);
       this.handleKeyDown = this.handleKeyDown.bind(this);
       this.handleMaskClick = this.handleMaskClick.bind(this);
+      
+      shadowRoot.querySelector('[name="dialogBody"]').addEventListener('slotchange', () => {
+        this.els.dialogBody = this.querySelector('[slot="dialogBody"]');
+      });
+    }
+    
+    connectedCallback() {
+      window.requestAnimationFrame(() => {
+        const visibleInput = this.els.dialogBody && this.els.dialogBody.querySelector('input[type="text"]');
+        (visibleInput) ? visibleInput.focus() : this.els.dialog.focus();
+      });
     }
 
     handleCloseClick() { this.close(); }
@@ -204,7 +210,6 @@
       }
       
       if (!this.parentNode) document.body.appendChild(this);
-      this.els.dialog.focus();
       
       if (!this.modal) {
         this.els.closeBtn.addEventListener('click', this.handleCloseClick);
@@ -235,7 +240,7 @@
         delete window.customDialog;
         
         // only remove if not within another Web Component
-        if (this.parentNode.toString() !== "[object ShadowRoot]") this.remove();
+        if (this.parentNode && this.parentNode.toString() !== "[object ShadowRoot]") this.remove();
       }, ANIM_DURATION);
     }
   }

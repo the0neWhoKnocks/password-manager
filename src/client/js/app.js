@@ -1,7 +1,87 @@
+const genUniqueId = (txt) => btoa(`cli_${txt}`).replace(/=/g, '');
+const labeledInput = ({
+  helpText = '',
+  label,
+  name,
+  placeholder = '',
+  required,
+  type = 'text',
+  value = '',
+}) => {
+  const id = genUniqueId(name);
+  return `
+    <div class="labeled-input">
+      <div class="labeled-input__wrapper">
+        <input
+          type="${type}"
+          id="${id}"
+          name="${name}"
+          placeholder="${placeholder}"
+          value="${value}"
+          ${required ? 'required' : ''}
+        />
+        <label for="${id}">${label}</label>
+      </div>
+      ${helpText && `<p class="help-text">${helpText}</p>`}
+    </div>
+  `;
+};
+
 function showConfigSetUp() {
-  const configForm = document.createElement('custom-create-config-form');
-  configForm.action = '/api/config/create';
-  configForm.show();
+  window.utils.storage.clear();
+  
+  const configDialog = document.createElement('custom-dialog');
+  configDialog.modal = true;
+  configDialog.innerHTML = `
+    <form
+      slot="dialogBody"
+      id="createConfig"
+      action="/api/config/create"
+      method="POST"
+      autocomplete="off"
+    >
+      <div class="hr-with-text">
+        <span>Create Config</span>
+      </div>
+      <p>
+        Looks like this is your first time running this App, so let's set
+        some things up.
+      </p>
+      ${labeledInput({
+        label: 'Cipher Key',
+        name: 'cipherKey',
+        placeholder: 'word or phrase',
+        required: true,
+        helpText: `
+          The Cipher Key is a unique value used for some top-level
+          encryption operations of the App.
+        `, 
+      })}
+      ${labeledInput({
+        label: 'Salt',
+        name: 'salt',
+        placeholder: 'word or phrase',
+        required: true,
+        helpText: `
+          The Salt is a unique value that will be used to randomize
+          encrypted values.
+        `, 
+      })}
+      <button value="create">Create</button>
+    </form>
+  `;
+  
+  configDialog.show();
+  
+  configDialog.querySelector('#createConfig').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    
+    const form = ev.currentTarget;
+    
+    window.utils.postData(form.action, form)
+      .then(() => { window.location.reload(); })
+      .catch(({ error }) => { alert(error); });
+  });
 }
 
 function showLogin() {
@@ -9,34 +89,133 @@ function showLogin() {
   doors.classList.add('doors');
   document.body.appendChild(doors);
   
-  const loginForm = document.createElement('custom-login-form');
-  loginForm.action = '/api/user/login';
-  loginForm.onCreateClick = () => {
-    loginForm.close();
-    createAccountForm.show();
-  };
-  loginForm.onLoginSuccess = (userData) => {
-    loginForm.close();
-    window.utils.storage.set({ userData }, loginForm.rememberMe);
+  const loginDialog = document.createElement('custom-dialog');
+  loginDialog.modal = true;
+  loginDialog.innerHTML = `
+    <form
+      slot="dialogBody"
+      id="loginForm"
+      method="POST"
+      action="/api/user/login"
+      autocomplete="off"
+      spellcheck="false"
+    >
+      <div class="hr-with-text">
+        <span>Log In</span>
+      </div>
+      ${labeledInput({ label: 'Username', name: 'username', required: true })}
+      ${labeledInput({ label: 'Password', name: 'password', required: true, type: 'password' })}
+      <label class="remember-me">
+        <input type="checkbox" id="rememberMe" />
+        Remember Me
+      </label>
+      <button value="login">Log In</button>
+      <div class="hr-with-text">
+        <span>or</span>
+      </div>
+      <button type="button" value="create">Create Account</button>
+    </form>
+  `;
+  
+  const createAccountDialog = document.createElement('custom-dialog');
+  createAccountDialog.modal = true;
+  createAccountDialog.innerHTML = `
+    <form
+      slot="dialogBody"
+      id="createAccount"
+      method="POST"
+      action="/api/user/create"
+      autocomplete="off"
+      spellcheck="false"
+    >
+      <div class="hr-with-text">
+        <span>Create Account</span>
+      </div>
+      ${labeledInput({ label: 'Username', name: 'username', required: true })}
+      ${labeledInput({ label: 'Password', name: 'password', required: true, type: 'password' })}
+      ${labeledInput({ label: 'Confirm Password', name: 'passwordConfirmed', required: true, type: 'password' })}
+      <nav>
+        <button type="button" value="cancel">Cancel</button>
+        <button value="create">Create</button>
+      </nav>
+    </form>
+  `;
+  
+  const openLoginDialog = () => {
+    loginDialog.show();
     
-    showCredentials();
-    doors.classList.add('open');
+    const loginForm = loginDialog.querySelector('form');
+    const loginUsername = loginForm.querySelector('[name="username"]');
+    const loginPassword = loginForm.querySelector('[name="password"]');
+    const createAccountBtn = loginForm.querySelector('[value="create"]');
+    const rememberMeCheckBox = loginForm.querySelector('#rememberMe');
+    
+    const handleCreateClick = () => {
+      loginDialog.close();
+      createAccountDialog.show();
+      
+      const createAccountForm = createAccountDialog.querySelector('form');
+      const createUsername = createAccountForm.querySelector('[name="username"]');
+      const createPassword = createAccountForm.querySelector('[name="password"]');
+      const createPasswordConfirmed = createAccountForm.querySelector('[name="passwordConfirmed"]');
+      const createCancel = createAccountForm.querySelector('[value="cancel"]');
+      
+      const handleCreateSubmit = (ev) => {
+        ev.preventDefault();
+        
+        const form = ev.currentTarget;
+        
+        if (createPassword.value === createPasswordConfirmed.value) {
+          window.utils.postData(form.action, form)
+            .then(() => {
+              createAccountDialog.close();
+              openLoginDialog();
+              loginUsername.value = createUsername.value;
+              loginPassword.value = createPassword.value;
+            })
+            .catch(({ error }) => { alert(error); });
+        }
+        else {
+          alert("Your passwords don't match");
+        }
+      }
+      const handleCreateCancel = () => {
+        createAccountDialog.close();
+        openLoginDialog();
+      };
+      
+      createAccountForm.addEventListener('submit', handleCreateSubmit);
+      createCancel.addEventListener('click', handleCreateCancel);
+      createAccountDialog.onClose = () => {
+        createAccountForm.removeEventListener('submit', handleCreateSubmit);
+        createCancel.removeEventListener('click', handleCreateCancel);
+      };
+    }
+    const handleLogin = (ev) => {
+      ev.preventDefault();
+      
+      const form = ev.currentTarget;
+      
+      window.utils.postData(form.action, form)
+        .then((userData) => {
+          loginDialog.close();
+          window.utils.storage.set({ userData }, rememberMeCheckBox.checked);
+        
+          showCredentials();
+          doors.classList.add('open');
+        })
+        .catch(({ error }) => { alert(error); });
+    }
+    
+    createAccountBtn.addEventListener('click', handleCreateClick);
+    loginForm.addEventListener('submit', handleLogin);
+    loginDialog.onClose = () => {
+      createAccountBtn.removeEventListener('click', handleCreateClick);
+      loginForm.removeEventListener('submit', handleLogin);
+    };
   };
   
-  const createAccountForm = document.createElement('custom-create-account-form');
-  createAccountForm.action = '/api/user/create';
-  createAccountForm.onCreateSuccess = ({ password, username }) => {
-    createAccountForm.close();
-    loginForm.show();
-    loginForm.username = username;
-    loginForm.password = password;
-  };
-  createAccountForm.onCancelClick = () => {
-    createAccountForm.close();
-    loginForm.show();
-  };
-  
-  loginForm.show();
+  openLoginDialog();
 }
 
 function showCredentials() {
@@ -71,32 +250,17 @@ function showCredentials() {
     credentialsDialog.innerHTML = `
       <form
         slot="dialogBody"
-        class="add-creds-form"
+        id="addCredsForm"
         action="/api/user/add-creds"
         method="POST"
         autocomplete="off"
       >
-        <label class="input-label">
-          Label
-          <input type="text" name="label" required />
-        </label>
-        <label class="input-label">
-          Website
-          <input type="text" name="website" />
-        </label>
-        <label class="input-label">
-          Email
-          <input type="text" name="email" autocomplete="off" />
-        </label>
-        <label class="input-label">
-          Username
-          <input type="text" name="username" />
-        </label>
-        <label class="input-label">
-          Password
-          <input type="text" name="password" />
-        </label>
-        <button type="button" id="addCustomCred">Add Custom</button>
+        ${labeledInput({ label: 'Label', name: 'label', required: true })}
+        ${labeledInput({ label: 'Website', name: 'website' })}
+        ${labeledInput({ label: 'Email', name: 'email' })}
+        ${labeledInput({ label: 'Username', name: 'username' })}
+        ${labeledInput({ label: 'Password', name: 'password' })}
+        <button type="button" id="addCustomCred">&#43; Add Custom</button>
         <button>Create</button>
       </form>
     `;
