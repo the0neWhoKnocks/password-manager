@@ -12,9 +12,7 @@
         method="POST"
         autocomplete="off"
       >
-        <div class="hr-with-text">
-          <span>Create Config</span>
-        </div>
+        ${window.templates.hrWithText({ label: 'Create Config' })}
         <p>
           Looks like this is your first time running this App, so let's set
           some things up.
