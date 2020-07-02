@@ -18,8 +18,8 @@
         <div class="hr-with-text">
           <span>Log In</span>
         </div>
-        ${window.markup.labeledInput({ label: 'Username', name: 'username', required: true })}
-        ${window.markup.labeledInput({ label: 'Password', name: 'password', required: true, type: 'password' })}
+        ${window.templates.labeledInput({ label: 'Username', name: 'username', required: true })}
+        ${window.templates.labeledInput({ label: 'Password', name: 'password', required: true, type: 'password' })}
         <label class="remember-me">
           <input type="checkbox" id="rememberMe" />
           Remember Me
@@ -46,9 +46,9 @@
         <div class="hr-with-text">
           <span>Create Account</span>
         </div>
-        ${window.markup.labeledInput({ label: 'Username', name: 'username', required: true })}
-        ${window.markup.labeledInput({ label: 'Password', name: 'password', required: true, type: 'password' })}
-        ${window.markup.labeledInput({ label: 'Confirm Password', name: 'passwordConfirmed', required: true, type: 'password' })}
+        ${window.templates.labeledInput({ label: 'Username', name: 'username', required: true })}
+        ${window.templates.labeledInput({ label: 'Password', name: 'password', required: true, type: 'password' })}
+        ${window.templates.labeledInput({ label: 'Confirm Password', name: 'passwordConfirmed', required: true, type: 'password' })}
         <nav>
           <button type="button" value="cancel">Cancel</button>
           <button value="create">Create</button>
