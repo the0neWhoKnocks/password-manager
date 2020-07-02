@@ -22,9 +22,9 @@ module.exports = function viewMiddleware({ resp }) {
     '/js/storage.js',
     '/js/CustomDialog.js',
     '/js/CustomDropDown.js',
-    '/js/showConfigSetUp.js',
-    '/js/showCredentials.js',
-    '/js/showLogin.js',
+    '/js/views/configSetUp.js',
+    '/js/views/credentials.js',
+    '/js/views/login.js',
   ];
   
   resp.end(`
