@@ -28,6 +28,6 @@
     `;
   };
   
-  if (!window.markup) window.markup = {};
-  window.markup.labeledInput = labeledInput;
+  if (!window.templates) window.templates = {};
+  window.templates.labeledInput = labeledInput;
 })();

@@ -19,7 +19,7 @@
           Looks like this is your first time running this App, so let's set
           some things up.
         </p>
-        ${window.markup.labeledInput({
+        ${window.templates.labeledInput({
           label: 'Cipher Key',
           name: 'cipherKey',
           placeholder: 'word or phrase',
@@ -29,7 +29,7 @@
             encryption operations of the App.
           `, 
         })}
-        ${window.markup.labeledInput({
+        ${window.templates.labeledInput({
           label: 'Salt',
           name: 'salt',
           placeholder: 'word or phrase',

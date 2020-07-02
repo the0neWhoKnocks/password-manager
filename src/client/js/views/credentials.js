@@ -36,11 +36,11 @@
           method="POST"
           autocomplete="off"
         >
-          ${window.markup.labeledInput({ label: 'Label', name: 'label', required: true })}
-          ${window.markup.labeledInput({ label: 'Website', name: 'website' })}
-          ${window.markup.labeledInput({ label: 'Email', name: 'email' })}
-          ${window.markup.labeledInput({ label: 'Username', name: 'username' })}
-          ${window.markup.labeledInput({ label: 'Password', name: 'password' })}
+          ${window.templates.labeledInput({ label: 'Label', name: 'label', required: true })}
+          ${window.templates.labeledInput({ label: 'Website', name: 'website' })}
+          ${window.templates.labeledInput({ label: 'Email', name: 'email' })}
+          ${window.templates.labeledInput({ label: 'Username', name: 'username' })}
+          ${window.templates.labeledInput({ label: 'Password', name: 'password' })}
           <button type="button" id="addCustomCred">&#43; Add Custom</button>
           <button>Create</button>
         </form>
