@@ -16,11 +16,15 @@ module.exports = function viewMiddleware({ resp }) {
   
   const NEEDS_INITAL_SETUP = !configExists();
   const headScripts = [
+    '/js/labeledInput.js',
     '/js/serializeForm.js',
     '/js/request.js',
     '/js/storage.js',
     '/js/CustomDialog.js',
     '/js/CustomDropDown.js',
+    '/js/showConfigSetUp.js',
+    '/js/showCredentials.js',
+    '/js/showLogin.js',
   ];
   
   resp.end(`
