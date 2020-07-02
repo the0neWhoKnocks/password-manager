@@ -62,7 +62,7 @@ nodemon({
 browserSync.init({
   files: [
     'src/client/css/app.css',
-    'src/client/js/*.js',
+    'src/client/js/**/*.js',
     'src/client/index.html',
   ],
   ghostMode: false, // don't mirror interactions in other browsers
