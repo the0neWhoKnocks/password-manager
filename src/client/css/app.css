@@ -9,10 +9,96 @@ html, body {
 }
 
 form {
+  padding: 1em;
   margin: 0;
 }
 form > *:not(:last-child) {
-  margin-bottom: 0.5em;
+  margin-bottom: 1em;
+}
+form button,
+form input {
+  font-size: 1em;
+}
+form button {
+  color: #fff;
+  width: 100%;
+  padding: 0.75em 1em;
+  border: none;
+  border-radius: 0;
+  background: #000;
+  cursor: pointer;
+}
+
+.hr-with-text {
+  font-weight: bold;
+  text-align: center;
+  position: relative;
+  z-index: 0;
+}
+.hr-with-text::before {
+  content: '';
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: -1;
+}
+.hr-with-text > * {
+  padding: 0 1em;
+  background: #eeeeee;
+}
+
+.help-text {
+  color: rgba(0 ,0, 0, 0.5);
+  font-size: 0.75em;
+  margin: 0.5em 0;
+}
+
+.labeled-input input {
+  width: var(--labeled-input__input-width, auto);
+  padding: 0.5em;
+  margin-left: 0.5em;
+}
+.labeled-input input:required {
+  padding: 0.5em 1.75em 0.5em 0.5em;
+}
+.labeled-input input:required ~ label::after {
+  content: '\2217';
+  color: #ff7600;
+  font-size: 1.75em;
+  font-weight: bold;
+  position: absolute;
+  top: 50%;
+  right: 0.25em;
+  transform: translateY(-50%);
+}
+.labeled-input__wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-direction: row-reverse;
+  position: relative;
+}
+
+#createConfig {
+  max-width: 360px;
+}
+
+.remember-me {
+  text-align: right;
+  user-select: none;
+  cursor: pointer;
+  display: block;
+}
+
+#createAccount nav {
+  display: flex;
+}
+#createAccount nav button:not(:first-of-type) {
+  margin-left: 0.75em;
 }
 
 custom-dialog button {
@@ -57,17 +143,6 @@ custom-dialog button {
   transform: translateX(100%);
 }
 
-.input-label {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.input-label input {
-  padding: 0.5em;
-  margin-left: 0.5em;
-}
-
 .credentials {
   height: 100%;
   display: flex;
@@ -102,9 +177,11 @@ custom-dialog button {
   transform: translateX(-50%);
 }
 
-.add-creds-form {
+#addCredsForm {
+  --labeled-input__input-width: 270px;
   padding: 1em;
 }
+
 #addCustomCred {
   width: 100%;
   color: #000;

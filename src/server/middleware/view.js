@@ -20,10 +20,7 @@ module.exports = function viewMiddleware({ resp }) {
     '/js/request.js',
     '/js/storage.js',
     '/js/CustomDialog.js',
-    '/js/CustomCreateAccountForm.js',
-    '/js/CustomCreateConfigForm.js',
     '/js/CustomDropDown.js',
-    '/js/CustomLoginForm.js',
   ];
   
   resp.end(`
