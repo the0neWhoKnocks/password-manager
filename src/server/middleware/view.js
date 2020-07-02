@@ -17,6 +17,7 @@ module.exports = function viewMiddleware({ resp }) {
   const NEEDS_INITAL_SETUP = !configExists();
   const headScripts = [
     '/js/templates/labeledInput.js',
+    '/js/templates/hrWithText.js',
     '/js/utils/request.js',
     '/js/utils/serializeForm.js',
     '/js/utils/storage.js',

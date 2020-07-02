@@ -15,9 +15,7 @@
         autocomplete="off"
         spellcheck="false"
       >
-        <div class="hr-with-text">
-          <span>Log In</span>
-        </div>
+        ${window.templates.hrWithText({ label: 'Log In' })}
         ${window.templates.labeledInput({ label: 'Username', name: 'username', required: true })}
         ${window.templates.labeledInput({ label: 'Password', name: 'password', required: true, type: 'password' })}
         <label class="remember-me">
@@ -25,9 +23,7 @@
           Remember Me
         </label>
         <button value="login">Log In</button>
-        <div class="hr-with-text">
-          <span>or</span>
-        </div>
+        ${window.templates.hrWithText({ label: 'or' })}
         <button type="button" value="create">Create Account</button>
       </form>
     `;
@@ -43,9 +39,7 @@
         autocomplete="off"
         spellcheck="false"
       >
-        <div class="hr-with-text">
-          <span>Create Account</span>
-        </div>
+        ${window.templates.hrWithText({ label: 'Create Account' })}
         ${window.templates.labeledInput({ label: 'Username', name: 'username', required: true })}
         ${window.templates.labeledInput({ label: 'Password', name: 'password', required: true, type: 'password' })}
         ${window.templates.labeledInput({ label: 'Confirm Password', name: 'passwordConfirmed', required: true, type: 'password' })}
