@@ -1,9 +1,12 @@
 (() => {
   const genUniqueId = (txt) => btoa(`cli_${txt}`).replace(/=/g, '');
   const labeledInput = ({
+    disabled,
+    extraClasses = '',
     helpText = '',
     label,
-    name,
+    lowerMarkup = '',
+    name = '',
     placeholder = '',
     required,
     type = 'text',
@@ -11,19 +14,21 @@
   }) => {
     const id = genUniqueId(name);
     return `
-      <div class="labeled-input">
+      <div class="labeled-input ${extraClasses}">
         <div class="labeled-input__wrapper">
           <input
             type="${type}"
             id="${id}"
-            name="${name}"
-            placeholder="${placeholder}"
-            value="${value}"
+            ${name ? `name="${name}"` : ''}
+            ${placeholder ? `placeholder="${placeholder}"` : ''}
+            ${value ? `value="${value}"` : ''}
             ${required ? 'required' : ''}
+            ${disabled ? 'disabled' : ''}
           />
           <label for="${id}">${label}</label>
         </div>
         ${helpText && `<p class="help-text">${helpText}</p>`}
+        ${lowerMarkup}
       </div>
     `;
   };

@@ -73,6 +73,7 @@
     }
     
     .dialog__nav {
+      min-height: 2em;
       font-size: 1.25em;
       border-bottom: solid 1px;
       display: flex;
