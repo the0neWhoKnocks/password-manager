@@ -21,6 +21,16 @@ const loadConfig = (resp) => new Promise((resolve, reject) => {
   else resolve();
 }).catch(returnErrorResp({ label: 'Config load failed', resp }));
 
+const getUsersCredentialsPath = (encryptedUsername) => `${DATA_PATH}/creds_${encryptedUsername}.json`;
+const loadUsersCredentials = (filePath) => new Promise((resolve) => {
+  if (existsSync(filePath)) {
+    readFile(filePath, 'utf8', (err, data) => {
+      resolve(JSON.parse(data));
+    });
+  }
+  else resolve([]);
+});
+
 const encrypt = (value, password) => new Promise((resolve) => {
   const { cipherKey, iv: configIV, salt } = userConfig;
   let pass = cipherKey;
@@ -34,7 +44,7 @@ const encrypt = (value, password) => new Promise((resolve) => {
   const key = crypto.scryptSync(pass, salt, 24);
   const cipher = crypto.createCipheriv('aes-192-cbc', key, iv);
   const encrypted = Buffer.concat([
-    cipher.update(value),
+    cipher.update((typeof value === 'object') ? JSON.stringify(value) : value),
     cipher.final()
   ]);
   
@@ -98,10 +108,7 @@ function createUser({ req, resp }) {
       else {
         Promise.all([
           encrypt(username),
-          encrypt(JSON.stringify({
-            password,
-            username,
-          }), password),
+          encrypt({ password, username }, password),
           loadUsers(),
         ]).then(([
           { value: encryptedUsername },
@@ -173,10 +180,32 @@ function login({ req, resp }) {
     .catch(returnErrorResp({ label: 'Gen Token request parse failed', resp }));
 }
 
-// function addCreds({ req, resp }) {
-//   // encrypt(username, password).then((encrypted) => {
-//   // decrypt(encrypted, password).then((decrypted) => {
-// }
+function addCreds({ req, resp }) {
+  parseReq(req)
+    .then(async (creds) => {
+      const {
+        user: { username, password },
+        ..._creds
+      } = creds;
+      const parsedCreds = {};
+      Object.keys(_creds).forEach((prop) => {
+        if (_creds[prop]) parsedCreds[prop] = _creds[prop];
+      });
+      
+      const encryptedUsername = (await encrypt(username)).value;
+      const encryptedData = (await encrypt(parsedCreds, password)).combined;
+      const filePath = getUsersCredentialsPath(encryptedUsername);
+      const usersCreds = await loadUsersCredentials(filePath);
+      
+      usersCreds.push(encryptedData);
+      
+      writeFile(filePath, JSON.stringify(usersCreds, null, 2), 'utf8', (err) => {
+        if (err) returnErrorResp({ label: 'Add Creds write failed', resp })(err);
+        else returnResp({ prefix: 'ADDED', label: 'Creds', resp });
+      });
+    })
+    .catch(returnErrorResp({ label: 'Add Creds request parse failed', resp }));
+}
 
 function createConfig({ req, resp }) {
   parseReq(req)
@@ -207,7 +236,7 @@ module.exports = function apiMiddleware({ req, resp, urlPath }) {
     
     loadConfig(resp).then(() => {
       if (urlPath.endsWith('/config/create')) createConfig({ req, resp });
-      // else if (urlPath.endsWith('/user/add-creds')) addCreds({ req, resp });
+      else if (urlPath.endsWith('/user/add-creds')) addCreds({ req, resp });
       else if (urlPath.endsWith('/user/create')) createUser({ req, resp });
       else if (urlPath.endsWith('/user/login')) login({ req, resp });
       else returnErrorResp({ resp })(`The endpoint "${urlPath}" does not exist`);

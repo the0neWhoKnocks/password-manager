@@ -6,7 +6,7 @@ window.utils.postData = function postData(url, obj) {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify((obj instanceof HTMLElement) ? window.utils.serializeForm(obj): obj),
+    body: JSON.stringify((obj instanceof HTMLElement) ? window.utils.serializeForm(obj) : obj),
   })
     .then((resp) => {
       return new Promise((res, rej) => {
