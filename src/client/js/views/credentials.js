@@ -1,34 +1,39 @@
 (() => {
   const templates = {
-    addCreds: () => `
-      <div slot="dialogBody">
-        <form
-          class="add-creds-form"
-          action="/api/user/add-creds"
-          method="POST"
-          autocomplete="off"
-        >
-          <div class="add-creds-form__inputs">
-            ${window.templates.labeledInput({ label: 'Label', name: 'label', required: true })}
-            ${window.templates.labeledInput({ label: 'Password', name: 'password', required: true })}
-            ${window.templates.labeledInput({ label: 'Website', name: 'website' })}
-            ${window.templates.labeledInput({ label: 'Email', name: 'email' })}
-            ${window.templates.labeledInput({ label: 'Username', name: 'username' })}
-          </div>
-          <button>Add Credentials</button>
-        </form>
-        <form class="input-creator-form" autocomplete="off">
-          <button type="button" id="addCustomCred">&#43; Add Custom Field</button>
-          <div class="input-creator">
-            <input type="text" placeholder="Custom Label" name="label" required />
-            <nav>
-              <button type="button" value="cancel">Close</button>
-              <button value="confirm">Add Field</button>
-            </nav>
-          </div>
-        </form>
-      </div>
-    `,
+    addCreds: () => {
+      const { password, username } = window.utils.storage.get('userData');
+      return `
+        <div slot="dialogBody">
+          <form
+            class="add-creds-form"
+            action="/api/user/add-creds"
+            method="POST"
+            autocomplete="off"
+          >
+            <input type="hidden" name="user[username]" value="${username}" />
+            <input type="hidden" name="user[password]" value="${password}" />
+            <div class="add-creds-form__inputs">
+              ${window.templates.labeledInput({ label: 'Label', name: 'label', required: true })}
+              ${window.templates.labeledInput({ label: 'Password', name: 'password', required: true })}
+              ${window.templates.labeledInput({ label: 'Website', name: 'website' })}
+              ${window.templates.labeledInput({ label: 'Email', name: 'email' })}
+              ${window.templates.labeledInput({ label: 'Username', name: 'username' })}
+            </div>
+            <button>Add Credentials</button>
+          </form>
+          <form class="input-creator-form" autocomplete="off">
+            <button type="button" id="addCustomCred">&#43; Add Custom Field</button>
+            <div class="input-creator">
+              <input type="text" placeholder="Custom Label" name="label" required />
+              <nav>
+                <button type="button" value="cancel">Close</button>
+                <button value="confirm">Add Field</button>
+              </nav>
+            </div>
+          </form>
+        </div>
+      `;
+    },
     view: () => `
       <nav class="credentials__top-nav">
         <custom-drop-down label="Credentials">
@@ -83,6 +88,18 @@
       
       inputCreator.classList.add(MODIFIER__HIDDEN);
       
+      addCredsForm.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        
+        window.utils.postData(addCredsForm.action, addCredsForm)
+          .then(() => {
+            credentialsDialog.close();
+            
+            // TODO - trigger re-load of creds
+            alert('reload creds');
+          })
+          .catch(({ error }) => { alert(error); });
+      });
       addCustomCredBtn.addEventListener('click', () => {
         addCustomCredBtn.classList.add(MODIFIER__HIDDEN);
         inputCreator.classList.remove(MODIFIER__HIDDEN);
