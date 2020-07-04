@@ -229,6 +229,24 @@ function modifyCreds({ req, resp }) {
     .catch(returnErrorResp({ label: `Modify Creds request parse failed`, resp }));
 }
 
+function deleteCreds({ req, resp }) {
+  parseReq(req)
+    .then(async (data) => {
+      const { credsNdx, username } = data;
+      const encryptedUsername = (await encrypt(username)).value;
+      const filePath = getUsersCredentialsPath(encryptedUsername);
+      const usersCreds = await loadUsersCredentials(filePath);
+      
+      usersCreds.splice(credsNdx, 1);
+      
+      writeFile(filePath, JSON.stringify(usersCreds, null, 2), 'utf8', (err) => {
+        if (err) returnErrorResp({ label: 'Delete Creds write failed', resp })(err);
+        else returnResp({ prefix: 'DELETE', label: 'Creds', resp });
+      });
+    })
+    .catch(returnErrorResp({ label: `Delete Creds request parse failed`, resp }));
+}
+
 function loadCreds({ req, resp }) {
   parseReq(req)
     .then(async ({ username, password }) => {
@@ -281,6 +299,7 @@ module.exports = function apiMiddleware({ req, resp, urlPath }) {
       if (urlPath.endsWith('/config/create')) createConfig({ req, resp });
       else if (urlPath.endsWith('/user/create')) createUser({ req, resp });
       else if (urlPath.endsWith('/user/creds/add')) modifyCreds({ req, resp });
+      else if (urlPath.endsWith('/user/creds/delete')) deleteCreds({ req, resp });
       else if (urlPath.endsWith('/user/creds/load')) loadCreds({ req, resp });
       else if (urlPath.endsWith('/user/creds/update')) modifyCreds({ req, resp });
       else if (urlPath.endsWith('/user/login')) login({ req, resp });

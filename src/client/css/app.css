@@ -384,3 +384,19 @@ form.input-creator-form > * {
 .input-creator.is--hidden {
   display: none;
 }
+
+.delete-confirmation nav {
+  display: flex;
+}
+.delete-confirmation nav button {
+  color: #000;
+  border: solid 1px;
+  background: transparent;
+}
+.delete-confirmation nav button:hover {
+  color: #fff;
+  background: #000;
+}
+.delete-confirmation nav button:not(:first-child) {
+  margin-left: 0.5em;
+}
