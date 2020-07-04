@@ -89,26 +89,30 @@
   let credsList;
   let customFieldsCount = 0;
   
-  function handleCredsListValueClick(ev) {
+  function addValueToClipboard(el) {
+    const temp = document.createElement('textarea');
+    temp.style.cssText = 'position: absolute; top: -100px; left: -100px;';
+    document.body.appendChild(temp);
+    temp.value = el.querySelector('span').innerText;
+    temp.select();
+    document.execCommand('copy');
+    document.body.removeChild(temp);
+    
+    const MODIFIER__COPIED = 'copied';
+    if (!el.classList.contains(MODIFIER__COPIED)) {
+      el.classList.add(MODIFIER__COPIED);
+      const animDuration = window.utils.getCSSVar('--copiedMsgDuration', { toNumber: true });
+      setTimeout(() => {
+        el.classList.remove(MODIFIER__COPIED);
+      }, animDuration);
+    }
+  }
+  
+  function handleCredCardClick(ev) {
     const currEl = ev.target;
     
     if (currEl.classList.contains('credentials-card__list-item-value')) {
-      const temp = document.createElement('textarea');
-      temp.style.cssText = 'position: absolute; top: -100px; left: -100px;';
-      document.body.appendChild(temp);
-      temp.value = ev.target.querySelector('span').innerText;
-      temp.select();
-      document.execCommand('copy');
-      document.body.removeChild(temp);
-      
-      const MODIFIER__COPIED = 'copied';
-      if (!currEl.classList.contains(MODIFIER__COPIED)) {
-        currEl.classList.add(MODIFIER__COPIED);
-        const animDuration = window.utils.getCSSVar('--copiedMsgDuration', { toNumber: true });
-        setTimeout(() => {
-          currEl.classList.remove(MODIFIER__COPIED);
-        }, animDuration);
-      }
+      addValueToClipboard(currEl);
     }
   }
   
@@ -119,8 +123,8 @@
     });
     credsList.innerHTML = credsListMarkup;
     
-    credsList.removeEventListener('click', handleCredsListValueClick);
-    credsList.addEventListener('click', handleCredsListValueClick);
+    credsList.removeEventListener('click', handleCredCardClick);
+    credsList.addEventListener('click', handleCredCardClick);
   }
   
   function loadCredentials() {
