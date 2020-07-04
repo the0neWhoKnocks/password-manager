@@ -139,6 +139,60 @@
       .catch(({ error }) => { alert(error); });
   }
   
+  function createAddOrEditCredsDialog() {
+    const credentialsDialog = document.createElement('custom-dialog');
+    credentialsDialog.innerHTML = templates.addCreds();
+    credentialsDialog.onClose = () => {
+      customFieldsCount = 0;
+    };
+    
+    credentialsDialog.show();
+    
+    const addCredsForm = credentialsDialog.querySelector('.add-creds-form');
+    const inputsContainer = addCredsForm.querySelector('.add-creds-form__inputs');
+    const inputCreatorForm = credentialsDialog.querySelector('.input-creator-form');
+    const addCustomCredBtn = inputCreatorForm.querySelector('#addCustomCred');
+    const inputCreator = inputCreatorForm.querySelector('.input-creator');
+    const cancelBtn = inputCreatorForm.querySelector('[value="cancel"]');
+    const creatorInput = inputCreatorForm.querySelector('input');
+    const MODIFIER__HIDDEN = 'is--hidden';
+    
+    inputCreator.classList.add(MODIFIER__HIDDEN);
+    
+    addCredsForm.addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      
+      window.utils.postData(addCredsForm.action, addCredsForm)
+        .then(() => {
+          credentialsDialog.close();
+          loadCredentials();
+        })
+        .catch(({ error }) => { alert(error); });
+    });
+    addCustomCredBtn.addEventListener('click', () => {
+      addCustomCredBtn.classList.add(MODIFIER__HIDDEN);
+      inputCreator.classList.remove(MODIFIER__HIDDEN);
+    });
+    cancelBtn.addEventListener('click', () => {
+      addCustomCredBtn.classList.remove(MODIFIER__HIDDEN);
+      inputCreator.classList.add(MODIFIER__HIDDEN);
+    });
+    inputCreatorForm.addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      
+      customFieldsCount += 1;
+      inputsContainer.insertAdjacentHTML(
+        'beforeend',
+        window.templates.labeledInput({
+          label: creatorInput.value,
+          name: `customField_${customFieldsCount}`,
+        })
+      );
+      creatorInput.value = '';
+      creatorInput.focus();
+    });
+  }
+  
   window.showCredentials = function showCredentials() {
     credentialsEl = document.createElement('div');
     credentialsEl.classList.add('credentials');
