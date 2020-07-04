@@ -38,14 +38,16 @@
       label,
       ...creds
     }) => `
-      <div class="credentials__card">
-        <header>${label}</header>
-        ${Object.keys(creds).map((prop) => `
-          <div>
-            <label>${prop}</label>
-            <input type="text" value="${creds[prop]}" readonly />
-          </div>
-        `).join('')}
+      <div class="credentials-card">
+        <header class="credentials-card__label">${label}</header>
+        <div class="credentials-card__list">
+          ${Object.keys(creds).map((prop) => `
+            <div class="credentials-card__list-item">
+              <label>${prop}</label>
+              <input type="text" value="${creds[prop]}" readonly />
+            </div>
+          `).join('')}
+        </div>
       </div>
     `,
     view: () => `
