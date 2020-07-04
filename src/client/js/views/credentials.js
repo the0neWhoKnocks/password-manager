@@ -1,25 +1,40 @@
 (() => {
   const templates = {
-    addCreds: () => {
+    addCreds: (currentData = {}, ndx) => {
+      const {
+        email,
+        label,
+        password: credPassword,
+        username: credUsername,
+        website,
+      } = currentData;
       const { password, username } = window.utils.storage.get('userData');
+      const updating = !!currentData;
+      const endpoint = (updating)
+        ? '/api/user/creds/update'
+        : '/api/user/creds/add';
+      
       return `
         <div slot="dialogBody">
           <form
-            class="add-creds-form"
-            action="/api/user/creds/add"
+            class="creds-form"
+            action="${endpoint}"
             method="POST"
             autocomplete="off"
           >
             <input type="hidden" name="user[username]" value="${username}" />
             <input type="hidden" name="user[password]" value="${password}" />
-            <div class="add-creds-form__inputs">
-              ${window.templates.labeledInput({ label: 'Label', name: 'label', required: true })}
-              ${window.templates.labeledInput({ label: 'Password', name: 'password', required: true })}
-              ${window.templates.labeledInput({ label: 'Website', name: 'website' })}
-              ${window.templates.labeledInput({ label: 'Email', name: 'email' })}
-              ${window.templates.labeledInput({ label: 'Username', name: 'username' })}
+            ${(updating) && `
+              <input type="hidden" name="credsNdx" value="${ndx}" />
+            `}
+            <div class="creds-form__inputs">
+              ${window.templates.labeledInput({ label: 'Label', name: 'label', value: label, required: true })}
+              ${window.templates.labeledInput({ label: 'Password', name: 'password', value: credPassword, required: true })}
+              ${window.templates.labeledInput({ label: 'Website', name: 'website', value: website })}
+              ${window.templates.labeledInput({ label: 'Email', name: 'email', value: email })}
+              ${window.templates.labeledInput({ label: 'Username', name: 'username', value: credUsername })}
             </div>
-            <button>Add Credentials</button>
+            <button ${updating ? 'disabled' : ''}>${(updating) ? 'Update' : 'Add'} Credentials</button>
           </form>
           <form class="input-creator-form" autocomplete="off">
             <button type="button" id="addCustomCred">&#43; Add Custom Field</button>
@@ -37,7 +52,7 @@
     credCard: ({
       label,
       ...creds
-    }) => `
+    }, ndx) => `
       <div class="credentials-card">
         <header class="credentials-card__label">${label}</header>
         <div class="credentials-card__list">
@@ -54,8 +69,8 @@
           `).join('')}
         </div>
         <nav class="credentials-card__ui">
-          <button type="text" value="delete">Delete</button>
-          <button type="text" value="edit">Edit</button>
+          <button type="text" value="delete" data-ndx="${ndx}">Delete</button>
+          <button type="text" value="edit" data-ndx="${ndx}">Edit</button>
         </nav>
       </div>
     `,
@@ -88,6 +103,7 @@
   let credsBody;
   let credsList;
   let customFieldsCount = 0;
+  let loadedCreds;
   
   function addValueToClipboard(el) {
     const temp = document.createElement('textarea');
@@ -114,12 +130,34 @@
     if (currEl.classList.contains('credentials-card__list-item-value')) {
       addValueToClipboard(currEl);
     }
+    else if (currEl.nodeName === 'BUTTON') {
+      if (currEl.value === 'edit') {
+        const ndx = currEl.dataset.ndx;
+        const dialog = createAddOrEditCredsDialog(loadedCreds[ndx], ndx);
+        const form = dialog.querySelector('.creds-form');
+        const loadedData = window.utils.serializeForm(form);
+        const submitBtn = form.querySelector('button');
+        
+        let tO;
+        form.addEventListener('input', () => {
+          if (tO) clearTimeout(tO);
+          tO = setTimeout(() => {
+            if (JSON.stringify(loadedData) !== JSON.stringify(window.utils.serializeForm(form))) {
+              submitBtn.removeAttribute('disabled');
+            }
+            else {
+              submitBtn.setAttribute('disabled', '');
+            }
+          }, 300);
+        });
+      }
+    }
   }
   
   function renderCards(creds) {
     let credsListMarkup = '';
-    creds.forEach((cred) => {
-      credsListMarkup += templates.credCard(cred);
+    creds.forEach((cred, ndx) => {
+      credsListMarkup += templates.credCard(cred, ndx);
     });
     credsList.innerHTML = credsListMarkup;
     
@@ -133,23 +171,25 @@
         credsBody.classList.remove('is--loading');
         credsList.innerHTML = '';
         
+        loadedCreds = creds;
+        
         if (!creds.length) credsBody.classList.add('has--no-credentials');
         else renderCards(creds);
       })
       .catch(({ error }) => { alert(error); });
   }
   
-  function createAddOrEditCredsDialog() {
+  function createAddOrEditCredsDialog(currentData, ndx) {
     const credentialsDialog = document.createElement('custom-dialog');
-    credentialsDialog.innerHTML = templates.addCreds();
+    credentialsDialog.innerHTML = templates.addCreds(currentData, ndx);
     credentialsDialog.onClose = () => {
       customFieldsCount = 0;
     };
     
     credentialsDialog.show();
     
-    const addCredsForm = credentialsDialog.querySelector('.add-creds-form');
-    const inputsContainer = addCredsForm.querySelector('.add-creds-form__inputs');
+    const credsForm = credentialsDialog.querySelector('.creds-form');
+    const inputsContainer = credsForm.querySelector('.creds-form__inputs');
     const inputCreatorForm = credentialsDialog.querySelector('.input-creator-form');
     const addCustomCredBtn = inputCreatorForm.querySelector('#addCustomCred');
     const inputCreator = inputCreatorForm.querySelector('.input-creator');
@@ -159,10 +199,10 @@
     
     inputCreator.classList.add(MODIFIER__HIDDEN);
     
-    addCredsForm.addEventListener('submit', (ev) => {
+    credsForm.addEventListener('submit', (ev) => {
       ev.preventDefault();
       
-      window.utils.postData(addCredsForm.action, addCredsForm)
+      window.utils.postData(credsForm.action, credsForm)
         .then(() => {
           credentialsDialog.close();
           loadCredentials();
@@ -191,6 +231,8 @@
       creatorInput.value = '';
       creatorInput.focus();
     });
+    
+    return credentialsDialog;
   }
   
   window.showCredentials = function showCredentials() {
@@ -209,57 +251,7 @@
       window.location.reload();
     });
     addCredsBtn.addEventListener('click', () => {
-      const credentialsDialog = document.createElement('custom-dialog');
-      credentialsDialog.innerHTML = templates.addCreds();
-      credentialsDialog.onClose = () => {
-        customFieldsCount = 0;
-      };
-      
-      credentialsDialog.show();
-      
-      const addCredsForm = credentialsDialog.querySelector('.add-creds-form');
-      const inputsContainer = addCredsForm.querySelector('.add-creds-form__inputs');
-      const inputCreatorForm = credentialsDialog.querySelector('.input-creator-form');
-      const addCustomCredBtn = inputCreatorForm.querySelector('#addCustomCred');
-      const inputCreator = inputCreatorForm.querySelector('.input-creator');
-      const cancelBtn = inputCreatorForm.querySelector('[value="cancel"]');
-      const creatorInput = inputCreatorForm.querySelector('input');
-      const MODIFIER__HIDDEN = 'is--hidden';
-      
-      inputCreator.classList.add(MODIFIER__HIDDEN);
-      
-      addCredsForm.addEventListener('submit', (ev) => {
-        ev.preventDefault();
-        
-        window.utils.postData(addCredsForm.action, addCredsForm)
-          .then(() => {
-            credentialsDialog.close();
-            loadCredentials();
-          })
-          .catch(({ error }) => { alert(error); });
-      });
-      addCustomCredBtn.addEventListener('click', () => {
-        addCustomCredBtn.classList.add(MODIFIER__HIDDEN);
-        inputCreator.classList.remove(MODIFIER__HIDDEN);
-      });
-      cancelBtn.addEventListener('click', () => {
-        addCustomCredBtn.classList.remove(MODIFIER__HIDDEN);
-        inputCreator.classList.add(MODIFIER__HIDDEN);
-      });
-      inputCreatorForm.addEventListener('submit', (ev) => {
-        ev.preventDefault();
-        
-        customFieldsCount += 1;
-        inputsContainer.insertAdjacentHTML(
-          'beforeend',
-          window.templates.labeledInput({
-            label: creatorInput.value,
-            name: `customField_${customFieldsCount}`,
-          })
-        );
-        creatorInput.value = '';
-        creatorInput.focus();
-      });
+      createAddOrEditCredsDialog();
     });
     
     loadCredentials();
