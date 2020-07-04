@@ -6,7 +6,7 @@
         <div slot="dialogBody">
           <form
             class="add-creds-form"
-            action="/api/user/add-creds"
+            action="/api/user/creds/add"
             method="POST"
             autocomplete="off"
           >
@@ -34,6 +34,20 @@
         </div>
       `;
     },
+    credCard: ({
+      label,
+      ...creds
+    }) => `
+      <div class="credentials__card">
+        <header>${label}</header>
+        ${Object.keys(creds).map((prop) => `
+          <div>
+            <label>${prop}</label>
+            <input type="text" value="${creds[prop]}" readonly />
+          </div>
+        `).join('')}
+      </div>
+    `,
     view: () => `
       <nav class="credentials__top-nav">
         <custom-drop-down label="Credentials">
@@ -46,14 +60,41 @@
           <button slot="ddItems" type="button" id="logout">Log Out</button>
         </custom-drop-down>
       </nav>
-      <div class="credentials__body"></div>
+      <div class="credentials__body is--loading">
+        <div class="spinner"></div>
+        <div class="no-creds-msg">
+          No credentials present. Go to Credentials &gt; Add
+        </div>
+        <div>Search Bar</div>
+        <div class="credentials__list"></div>
+      </div>
     `,
   };
   
   let credentialsEl;
   let logoutBtn;
   let addCredsBtn;
+  let credsBody;
+  let credsList;
   let customFieldsCount = 0;
+  
+  function loadCredentials() {
+    window.utils.postData('/api/user/creds/load', { ...window.utils.storage.get('userData') })
+      .then((creds) => {
+        credsBody.classList.remove('is--loading');
+        
+        if (!creds.length) credsBody.classList.add('has--no-credentials');
+        else {
+          let credsListMarkup = '';
+          creds.forEach((cred) => {
+            credsListMarkup += templates.credCard(cred);
+          });
+          credsList.innerHTML = credsListMarkup;
+        }
+        console.log(creds);
+      })
+      .catch(({ error }) => { alert(error); });
+  }
   
   window.showCredentials = function showCredentials() {
     credentialsEl = document.createElement('div');
@@ -63,6 +104,8 @@
     
     logoutBtn = document.querySelector('#logout');
     addCredsBtn = document.querySelector('#addCreds');
+    credsBody = credentialsEl.querySelector('.credentials__body');
+    credsList = credentialsEl.querySelector('.credentials__list');
     
     logoutBtn.addEventListener('click', () => {
       window.utils.storage.clear();
@@ -123,5 +166,7 @@
         creatorInput.focus();
       });
     });
+    
+    loadCredentials();
   }
 })();

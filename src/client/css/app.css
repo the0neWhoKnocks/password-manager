@@ -1,3 +1,8 @@
+@keyframes loaderSpin {
+  from { transform: rotate(0deg) }
+  to { transform: rotate(360deg) }
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -27,6 +32,27 @@ form button {
   border-radius: 0;
   background: #000;
   cursor: pointer;
+}
+
+.spinner {
+  content: '';
+  width: 2em;
+  height: 2em;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.spinner::before {
+  content: '';
+  width: 100%;
+  height: 100%;
+  border: solid 5px rgba(0, 0, 0, 0.15);
+  border-bottom-color: #000;
+  border-radius: 100%;
+  background: transparent;
+  display: block;
+  animation: loaderSpin 350ms infinite linear;
 }
 
 .hr-with-text {
@@ -158,23 +184,61 @@ custom-dialog button {
   z-index: 1;
 }
 
-.credentials__body {
-  height: 100%;
-  overflow: auto;
-  background: #eee;
-  position: relative;
-}
-.credentials__body::before {
-  content: 'No credentials present. Go to Credentials > Add';
+.no-creds-msg {
   padding: 1em;
   border: solid 1px #aaa;
   border-radius: 0.5em;
   box-shadow: 0 9px 15px 0px rgba(0, 0, 0, 0.25);
   background: #fff;
+  display: none;
   position: absolute;
   top: 25%;
   left: 50%;
   transform: translateX(-50%);
+}
+
+.credentials__body {
+  height: 100%;
+  overflow: hidden;
+  background: #eee;
+  position: relative;
+}
+.credentials__body .spinner {
+  display: none;
+}
+.credentials__body.is--loading .spinner {
+  display: block;
+  top: 40%;
+}
+.credentials__body.has--no-credentials .no-creds-msg {
+  display: block;
+}
+
+.credentials__list {
+  height: 100%;
+  padding: 2em 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.credentials__card {
+  width: 450px;
+  padding: 0.5em 1em 1em;
+  border: solid 1px;
+  border-radius: 0.25em;
+  background: #fff;
+  box-shadow: 0 4px 12px 2px rgba(0,0,0,0.25);
+}
+.credentials__card:not(:first-child) {
+  margin-top: 1em;
+}
+.credentials__card header {
+  font-weight: bold;
+  line-height: 2em;
+  border-bottom: solid 1px;
+  margin-bottom: 1em;
 }
 
 .add-creds-form {

@@ -19,6 +19,7 @@
     - [ ] Export Credentials (button): exports JSON with basic info that User entered, nothing specific to the App
     - [ ] Log Out
     - [ ] Delete Account
+  - [ ] A fuzzy Search bar, allowing a User to filter credentials down.
   - List of credentials
     - [ ] List item contains icon & label
     - [ ] Credential item (popup once user clicks on list item)
