@@ -131,6 +131,7 @@
     window.utils.postData('/api/user/creds/load', { ...window.utils.storage.get('userData') })
       .then((creds) => {
         credsBody.classList.remove('is--loading');
+        credsList.innerHTML = '';
         
         if (!creds.length) credsBody.classList.add('has--no-credentials');
         else renderCards(creds);
@@ -179,9 +180,7 @@
         window.utils.postData(addCredsForm.action, addCredsForm)
           .then(() => {
             credentialsDialog.close();
-            
-            // TODO - trigger re-load of creds
-            alert('reload creds');
+            loadCredentials();
           })
           .catch(({ error }) => { alert(error); });
       });
