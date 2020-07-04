@@ -207,6 +207,27 @@ function addCreds({ req, resp }) {
     .catch(returnErrorResp({ label: 'Add Creds request parse failed', resp }));
 }
 
+function loadCreds({ req, resp }) {
+  parseReq(req)
+    .then(async ({ username, password }) => {
+      const encryptedUsername = (await encrypt(username)).value;
+      const filePath = getUsersCredentialsPath(encryptedUsername);
+      const usersCreds = (await loadUsersCredentials(filePath)).map(async (creds) => {
+        return JSON.parse(await decrypt(creds, password));
+      });
+      
+      Promise.all(usersCreds).then((data) => {
+        returnResp({
+          prefix: 'LOADED',
+          label: 'Creds',
+          data,
+          resp,
+        });
+      });
+    })
+    .catch(returnErrorResp({ label: 'Add Creds request parse failed', resp }));
+}
+
 function createConfig({ req, resp }) {
   parseReq(req)
     .then(({ cipherKey, salt }) => {
@@ -236,8 +257,9 @@ module.exports = function apiMiddleware({ req, resp, urlPath }) {
     
     loadConfig(resp).then(() => {
       if (urlPath.endsWith('/config/create')) createConfig({ req, resp });
-      else if (urlPath.endsWith('/user/add-creds')) addCreds({ req, resp });
       else if (urlPath.endsWith('/user/create')) createUser({ req, resp });
+      else if (urlPath.endsWith('/user/creds/add')) addCreds({ req, resp });
+      else if (urlPath.endsWith('/user/creds/load')) loadCreds({ req, resp });
       else if (urlPath.endsWith('/user/login')) login({ req, resp });
       else returnErrorResp({ resp })(`The endpoint "${urlPath}" does not exist`);
     });
