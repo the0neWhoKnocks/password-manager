@@ -43,6 +43,10 @@ form button {
   background: #000;
   cursor: pointer;
 }
+form button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
 
 .spinner {
   content: '';
@@ -322,16 +326,16 @@ custom-dialog button {
   width: 32%;
 }
 
-.add-creds-form {
+.creds-form {
   --labeled-input__input-width: 270px;
   padding: 1em;
 }
-.add-creds-form__inputs {
+.creds-form__inputs {
   max-height: calc(100vh - 260px);
   overflow-x: hidden;
   overflow-y: auto;
 }
-.add-creds-form__inputs > *:not(:last-child) {
+.creds-form__inputs > *:not(:last-child) {
   margin-bottom: 0.25em;
 }
 #addCustomCred {

@@ -180,13 +180,18 @@ function login({ req, resp }) {
     .catch(returnErrorResp({ label: 'Gen Token request parse failed', resp }));
 }
 
-function addCreds({ req, resp }) {
+function modifyCreds({ req, resp }) {
   parseReq(req)
     .then(async (creds) => {
       const {
+        credsNdx,
         user: { username, password },
         ..._creds
       } = creds;
+      const updating = credsNdx !== undefined;
+      const errPrefix = (updating) ? 'Update' : 'Add';
+      const prefix = (updating) ? 'UPDATED' : 'ADDED';
+      
       const parsedCreds = {};
       Object.keys(_creds).forEach((prop) => {
         if (_creds[prop]) parsedCreds[prop] = _creds[prop];
@@ -197,14 +202,15 @@ function addCreds({ req, resp }) {
       const filePath = getUsersCredentialsPath(encryptedUsername);
       const usersCreds = await loadUsersCredentials(filePath);
       
-      usersCreds.push(encryptedData);
+      if (updating) usersCreds[credsNdx] = encryptedData;
+      else usersCreds.push(encryptedData);
       
       writeFile(filePath, JSON.stringify(usersCreds, null, 2), 'utf8', (err) => {
-        if (err) returnErrorResp({ label: 'Add Creds write failed', resp })(err);
-        else returnResp({ prefix: 'ADDED', label: 'Creds', resp });
+        if (err) returnErrorResp({ label: `${errPrefix} Creds write failed`, resp })(err);
+        else returnResp({ prefix, label: 'Creds', resp });
       });
     })
-    .catch(returnErrorResp({ label: 'Add Creds request parse failed', resp }));
+    .catch(returnErrorResp({ label: `Modify Creds request parse failed`, resp }));
 }
 
 function loadCreds({ req, resp }) {
@@ -258,10 +264,11 @@ module.exports = function apiMiddleware({ req, resp, urlPath }) {
     loadConfig(resp).then(() => {
       if (urlPath.endsWith('/config/create')) createConfig({ req, resp });
       else if (urlPath.endsWith('/user/create')) createUser({ req, resp });
-      else if (urlPath.endsWith('/user/creds/add')) addCreds({ req, resp });
+      else if (urlPath.endsWith('/user/creds/add')) modifyCreds({ req, resp });
       else if (urlPath.endsWith('/user/creds/load')) loadCreds({ req, resp });
+      else if (urlPath.endsWith('/user/creds/update')) modifyCreds({ req, resp });
       else if (urlPath.endsWith('/user/login')) login({ req, resp });
-      else returnErrorResp({ resp })(`The endpoint "${urlPath}" does not exist`);
+      else returnErrorResp({ label: 'Missing API path', resp })(new Error(`The endpoint "${urlPath}" does not exist`));
     });
   }
 }
