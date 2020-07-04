@@ -4,6 +4,7 @@
     disabled,
     extraClasses = '',
     helpText = '',
+    hiddenValue = '',
     label,
     lowerMarkup = '',
     name = '',
@@ -16,6 +17,9 @@
     return `
       <div class="labeled-input ${extraClasses}">
         <div class="labeled-input__wrapper">
+          ${(hiddenValue) && `
+            <input type="hidden" name="${name}_hidden" value="${hiddenValue}" />
+          `}
           <input
             type="${type}"
             id="${id}"

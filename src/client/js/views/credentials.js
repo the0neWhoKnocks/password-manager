@@ -1,7 +1,53 @@
 (() => {
   const templates = {
-    addCreds: (currentData = {}, ndx) => {
+    credCard: ({
+      label,
+      ...creds
+    }, ndx) => {
+      const { customFields = {}, ...standardFields } = creds;
+      const listItem = (obj, prop) => `
+        <div class="credentials-card__list-item">
+          <label>${prop}</label>
+          <div>
+            <button class="credentials-card__list-item-value">
+              <span>${obj[prop]}</span>
+              <div class="clipboard-icon">&#x1F4CB;</div>
+            </button>
+          </div>
+        </div>
+      `;
+      
+      return `
+        <div class="credentials-card">
+          <header class="credentials-card__label">${label}</header>
+          <div class="credentials-card__list">
+            ${Object.keys(standardFields).map((prop) => listItem(standardFields, prop)).join('')}
+            ${Object.keys(customFields).map((prop) => listItem(customFields, prop)).join('')}
+          </div>
+          <nav class="credentials-card__ui">
+            <button type="text" value="delete" data-ndx="${ndx}">Delete</button>
+            <button type="text" value="edit" data-ndx="${ndx}">Edit</button>
+          </nav>
+        </div>
+      `;
+    },
+    customFieldsCount: 0,
+    customField: ({
+      hiddenValue,
+      label,
+      value,
+    }) => {
+      templates.customFieldsCount += 1;
+      return window.templates.labeledInput({
+        hiddenValue,
+        label,
+        name: `customField_${templates.customFieldsCount}`,
+        value,
+      });
+    },
+    modifyCreds: (currentData = {}, ndx) => {
       const {
+        customFields,
         email,
         label,
         password: credPassword,
@@ -33,6 +79,13 @@
               ${window.templates.labeledInput({ label: 'Website', name: 'website', value: website })}
               ${window.templates.labeledInput({ label: 'Email', name: 'email', value: email })}
               ${window.templates.labeledInput({ label: 'Username', name: 'username', value: credUsername })}
+              ${Object.keys(customFields).map((prop) => {
+                return templates.customField({
+                  hiddenValue: prop,
+                  label: prop,
+                  value: customFields[prop],
+                });
+              }).join('')}
             </div>
             <button ${updating ? 'disabled' : ''}>${(updating) ? 'Update' : 'Add'} Credentials</button>
           </form>
@@ -49,31 +102,6 @@
         </div>
       `;
     },
-    credCard: ({
-      label,
-      ...creds
-    }, ndx) => `
-      <div class="credentials-card">
-        <header class="credentials-card__label">${label}</header>
-        <div class="credentials-card__list">
-          ${Object.keys(creds).map((prop) => `
-            <div class="credentials-card__list-item">
-              <label>${prop}</label>
-              <div>
-                <button class="credentials-card__list-item-value">
-                  <span>${creds[prop]}</span>
-                  <div class="clipboard-icon">&#x1F4CB;</div>
-                </button>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-        <nav class="credentials-card__ui">
-          <button type="text" value="delete" data-ndx="${ndx}">Delete</button>
-          <button type="text" value="edit" data-ndx="${ndx}">Edit</button>
-        </nav>
-      </div>
-    `,
     view: () => `
       <nav class="credentials__top-nav">
         <custom-drop-down label="Credentials">
@@ -102,7 +130,6 @@
   let addCredsBtn;
   let credsBody;
   let credsList;
-  let customFieldsCount = 0;
   let loadedCreds;
   
   function addValueToClipboard(el) {
@@ -181,9 +208,9 @@
   
   function createAddOrEditCredsDialog(currentData, ndx) {
     const credentialsDialog = document.createElement('custom-dialog');
-    credentialsDialog.innerHTML = templates.addCreds(currentData, ndx);
+    credentialsDialog.innerHTML = templates.modifyCreds(currentData, ndx);
     credentialsDialog.onClose = () => {
-      customFieldsCount = 0;
+      templates.customFieldsCount = 0;
     };
     
     credentialsDialog.show();
@@ -220,12 +247,11 @@
     inputCreatorForm.addEventListener('submit', (ev) => {
       ev.preventDefault();
       
-      customFieldsCount += 1;
       inputsContainer.insertAdjacentHTML(
         'beforeend',
-        window.templates.labeledInput({
+        templates.customField({
+          hiddenValue: creatorInput.value,
           label: creatorInput.value,
-          name: `customField_${customFieldsCount}`,
         })
       );
       creatorInput.value = '';

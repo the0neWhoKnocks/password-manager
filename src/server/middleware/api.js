@@ -193,9 +193,25 @@ function modifyCreds({ req, resp }) {
       const prefix = (updating) ? 'UPDATED' : 'ADDED';
       
       const parsedCreds = {};
-      Object.keys(_creds).forEach((prop) => {
-        if (_creds[prop]) parsedCreds[prop] = _creds[prop];
-      });
+      const credProps = Object.keys(_creds);
+      for (let i=0; i<credProps.length; i++) {
+        let prop = credProps[i];
+        const value = _creds[prop];
+        
+        // only deal with non-empty fields
+        if (value) {
+          let ref = parsedCreds;
+          
+          if (prop.startsWith('customField')) {
+            if (prop.endsWith('_hidden')) continue;
+            if (!parsedCreds.customFields) parsedCreds.customFields = {};
+            ref = parsedCreds.customFields;
+            prop = _creds[`${prop}_hidden`];
+          }
+          
+          ref[prop] = value;
+        }
+      }
       
       const encryptedUsername = (await encrypt(username)).value;
       const encryptedData = (await encrypt(parsedCreds, password)).combined;
