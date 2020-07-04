@@ -223,7 +223,7 @@ custom-dialog button {
   align-items: center;
 }
 
-.credentials__card {
+.credentials-card {
   width: 450px;
   padding: 0.5em 1em 1em;
   border: solid 1px;
@@ -231,14 +231,37 @@ custom-dialog button {
   background: #fff;
   box-shadow: 0 4px 12px 2px rgba(0,0,0,0.25);
 }
-.credentials__card:not(:first-child) {
+.credentials-card:not(:first-child) {
   margin-top: 1em;
 }
-.credentials__card header {
+.credentials-card__label {
   font-weight: bold;
+  text-transform: capitalize;
   line-height: 2em;
   border-bottom: solid 1px;
   margin-bottom: 1em;
+}
+.credentials-card__list {
+  width: 100%;
+  display: table;
+}
+.credentials-card__list-item {
+  display: table-row;
+}
+.credentials-card__list-item:not(:first-child) {
+  margin-top: 0.5em;
+}
+.credentials-card__list-item label,
+.credentials-card__list-item input {
+  display: table-cell;
+}
+.credentials-card__list-item label {
+  text-transform: capitalize;
+  padding: 0.5em 1.5em 0.5em 0;
+}
+.credentials-card__list-item input {
+  min-width: 100%;
+  padding: 0.5em;
 }
 
 .add-creds-form {
