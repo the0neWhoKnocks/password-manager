@@ -53,6 +53,10 @@
             </div>
           `).join('')}
         </div>
+        <nav class="credentials-card__ui">
+          <button type="text" value="delete">Delete</button>
+          <button type="text" value="edit">Edit</button>
+        </nav>
       </div>
     `,
     view: () => `
