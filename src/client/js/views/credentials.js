@@ -47,7 +47,7 @@
     },
     modifyCreds: (currentData = {}, ndx) => {
       const {
-        customFields,
+        customFields = {},
         email,
         label,
         password: credPassword,
@@ -55,7 +55,7 @@
         website,
       } = currentData;
       const { password, username } = window.utils.storage.get('userData');
-      const updating = !!currentData;
+      const updating = !!Object.keys(currentData).length;
       const endpoint = (updating)
         ? '/api/user/creds/update'
         : '/api/user/creds/add';
@@ -70,9 +70,9 @@
           >
             <input type="hidden" name="user[username]" value="${username}" />
             <input type="hidden" name="user[password]" value="${password}" />
-            ${(updating) && `
+            ${updating ? `
               <input type="hidden" name="credsNdx" value="${ndx}" />
-            `}
+            ` : ''}
             <div class="creds-form__inputs">
               ${window.templates.labeledInput({ label: 'Label', name: 'label', value: label, required: true })}
               ${window.templates.labeledInput({ label: 'Password', name: 'password', value: credPassword, required: true })}
@@ -176,6 +176,49 @@
               submitBtn.setAttribute('disabled', '');
             }
           }, 300);
+        });
+      }
+      else if (currEl.value === 'delete') {
+        const ndx = currEl.dataset.ndx;
+        const { username } = window.utils.storage.get('userData');
+        const confirmDialog = document.createElement('custom-dialog');
+        confirmDialog.modal = true;
+        confirmDialog.innerHTML = `
+          <form
+            slot="dialogBody"
+            class="delete-confirmation"
+            method="POST"
+            action="/api/user/creds/delete"
+          >
+            <input type="hidden" name="credsNdx" value="${ndx}" />
+            <input type="hidden" name="username" value="${username}" />
+            <p>
+              Are you sure you want to delete <b>"${loadedCreds[ndx].label}"</b>?
+            </p>
+            <nav>
+              <button type="button" value="no">No</button>
+              <button>Yes</button>
+            </nav>
+          </form>
+        `;
+        
+        confirmDialog.show();
+        
+        const form = confirmDialog.querySelector('form');
+        const cancelBtn = confirmDialog.querySelector('[value="no"]');
+        
+        form.addEventListener('submit', (ev) => {
+          ev.preventDefault();
+          
+          window.utils.postData(form.action, form)
+            .then(() => {
+              loadCredentials();
+              confirmDialog.close();
+            })
+            .catch(({ error }) => { alert(error); });
+        });
+        cancelBtn.addEventListener('click', () => {
+          confirmDialog.close();
         });
       }
     }
