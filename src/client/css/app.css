@@ -258,8 +258,8 @@ custom-dialog button {
 .credentials-card__list-item {
   display: table-row;
 }
-.credentials-card__list-item:not(:first-child) {
-  margin-top: 0.5em;
+.credentials-card__list-item:not(:first-child) label + div {
+  padding-top: 0.5em;
 }
 .credentials-card__list-item label,
 .credentials-card__list-item label + div {
