@@ -44,7 +44,12 @@
           ${Object.keys(creds).map((prop) => `
             <div class="credentials-card__list-item">
               <label>${prop}</label>
-              <input type="text" value="${creds[prop]}" readonly />
+              <div>
+                <button class="credentials-card__list-item-value">
+                  <span>${creds[prop]}</span>
+                  <div class="clipboard-icon">&#x1F4CB;</div>
+                </button>
+              </div>
             </div>
           `).join('')}
         </div>
@@ -80,20 +85,47 @@
   let credsList;
   let customFieldsCount = 0;
   
+  function handleCredsListValueClick(ev) {
+    const currEl = ev.target;
+    
+    if (currEl.classList.contains('credentials-card__list-item-value')) {
+      const temp = document.createElement('textarea');
+      temp.style.cssText = 'position: absolute; top: -100px; left: -100px;';
+      document.body.appendChild(temp);
+      temp.value = ev.target.querySelector('span').innerText;
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+      
+      const MODIFIER__COPIED = 'copied';
+      if (!currEl.classList.contains(MODIFIER__COPIED)) {
+        currEl.classList.add(MODIFIER__COPIED);
+        const animDuration = window.utils.getCSSVar('--copiedMsgDuration', { toNumber: true });
+        setTimeout(() => {
+          currEl.classList.remove(MODIFIER__COPIED);
+        }, animDuration);
+      }
+    }
+  }
+  
+  function renderCards(creds) {
+    let credsListMarkup = '';
+    creds.forEach((cred) => {
+      credsListMarkup += templates.credCard(cred);
+    });
+    credsList.innerHTML = credsListMarkup;
+    
+    credsList.removeEventListener('click', handleCredsListValueClick);
+    credsList.addEventListener('click', handleCredsListValueClick);
+  }
+  
   function loadCredentials() {
     window.utils.postData('/api/user/creds/load', { ...window.utils.storage.get('userData') })
       .then((creds) => {
         credsBody.classList.remove('is--loading');
         
         if (!creds.length) credsBody.classList.add('has--no-credentials');
-        else {
-          let credsListMarkup = '';
-          creds.forEach((cred) => {
-            credsListMarkup += templates.credCard(cred);
-          });
-          credsList.innerHTML = credsListMarkup;
-        }
-        console.log(creds);
+        else renderCards(creds);
       })
       .catch(({ error }) => { alert(error); });
   }

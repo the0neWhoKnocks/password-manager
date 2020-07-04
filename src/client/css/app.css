@@ -1,6 +1,16 @@
 @keyframes loaderSpin {
-  from { transform: rotate(0deg) }
-  to { transform: rotate(360deg) }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes copiedMsg {
+  0% { opacity: 0; }
+  10%,
+  40% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+:root {
+  --copiedMsgDuration: 2000ms;
 }
 
 *, *::before, *::after {
@@ -252,16 +262,42 @@ custom-dialog button {
   margin-top: 0.5em;
 }
 .credentials-card__list-item label,
-.credentials-card__list-item input {
+.credentials-card__list-item label + div {
   display: table-cell;
 }
 .credentials-card__list-item label {
   text-transform: capitalize;
   padding: 0.5em 1.5em 0.5em 0;
 }
-.credentials-card__list-item input {
-  min-width: 100%;
+.credentials-card__list-item label + div {
+  width: 100%;
+}
+.credentials-card__list-item-value {
+  width: 100%;
+  font-family: monospace;
   padding: 0.5em;
+  display: flex;
+  cursor: pointer;
+  position: relative;
+}
+.credentials-card__list-item-value * {
+  user-select: none;
+  pointer-events: none;
+}
+.credentials-card__list-item-value span {
+  width: 100%;
+}
+.credentials-card__list-item-value.copied::after {
+  content: 'Copied';
+  width: 100%;
+  height: 100%;
+  padding: 0.5em;
+  background: #b1ffb1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  animation: copiedMsg var(--copiedMsgDuration);
+  animation-fill-mode: forwards;
 }
 
 .add-creds-form {
