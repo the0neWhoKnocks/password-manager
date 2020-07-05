@@ -17,6 +17,21 @@
       - [ ] Display a preview of the credentials below the inputs
       - ‎[ ] Store all data in a JSON file. Each entry, UID with encoded Object of all entry data. When the User exports, it decodes everything. 
     - [ ] Export Credentials (button): exports JSON with basic info that User entered, nothing specific to the App
+      - Saves a JSON with an `app` & `creds` node.
+        ```
+        {
+          app: {
+            schema: 1.0,
+            user: {
+              username: '',
+              password: '',
+            },
+          },
+          creds: [],  
+        }
+        ```
+    - [ ] Import Credentials (button): exports JSON with basic info that User entered, nothing specific to the App
+      - Endpoint will have to batch process the creds
     - [ ] Log Out
     - [ ] Delete Account
   - [ ] A fuzzy Search bar, allowing a User to filter credentials down.
@@ -25,6 +40,14 @@
     - [ ] Credential item (popup once user clicks on list item)
       - label as title
       - All input values from Add Credentials step
+    - [ ] Group creds under first label letter. Have a visual indicator of this
+      ```
+      - A ----------------
+      <card>
+      <card>
+      - B ----------------
+      <card>
+      ```
 - [ ] Runs in Docker
 - [ ]‎`data` folder contains:
   - ‎`users.json`
