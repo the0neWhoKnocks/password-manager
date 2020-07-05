@@ -259,13 +259,18 @@
   function loadCredentials() {
     window.utils.postData('/api/user/creds/load', { ...window.utils.storage.get('userData') })
       .then((creds) => {
+        const MODIFIER__NO_CREDS = 'has--no-credentials';
+        
         credsBody.classList.remove('is--loading');
         credsList.innerHTML = '';
         
         loadedCreds = creds;
         
-        if (!creds.length) credsBody.classList.add('has--no-credentials');
-        else renderCards(creds);
+        if (!creds.length) credsBody.classList.add(MODIFIER__NO_CREDS);
+        else {
+          credsBody.classList.remove(MODIFIER__NO_CREDS);
+          renderCards(creds);
+        }
       })
       .catch(({ error }) => { alert(error); });
   }
