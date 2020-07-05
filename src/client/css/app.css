@@ -417,21 +417,22 @@ form.input-creator-form > * {
   display: none;
 }
 
-.delete-confirmation nav {
+.segmented-dialog-nav {
   display: flex;
 }
-.delete-confirmation nav button {
+.segmented-dialog-nav button {
   color: #000;
   border: solid 1px;
   background: transparent;
 }
-.delete-confirmation nav button:hover {
+.segmented-dialog-nav button:hover {
   color: #fff;
   background: #000;
 }
-.delete-confirmation nav button:not(:first-child) {
+.segmented-dialog-nav button:not(:first-child) {
   margin-left: 0.5em;
 }
+
 .delete-confirmation__msg {
   margin-top: 0;
 }
