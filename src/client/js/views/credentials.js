@@ -1,5 +1,9 @@
 (() => {
   const pad = (num, token='00') => token.substring(0, token.length-`${num}`.length) + num;
+  const sortArrayByProp = (prop) => (a, b) => {
+    const subCheck = (b[prop].toLowerCase() > a[prop].toLowerCase()) ? -1 : 0;
+    return (a[prop].toLowerCase() > b[prop].toLowerCase()) ? 1 : subCheck;
+  };
   
   const templates = {
     credCard: ({ label, ...creds }, ndx) => {
@@ -246,11 +250,23 @@
   }
   
   function renderCards(creds) {
+    creds.sort(sortArrayByProp('label'));
+    
+    const letters = [];
     let credsListMarkup = '';
     creds.forEach((cred, ndx) => {
+      const firstLetter = cred.label.toLowerCase().substring(0, 1);
+      if (!letters.includes(firstLetter)) {
+        letters.push(firstLetter);
+          credsListMarkup += window.templates.hrWithText({
+          className: 'credentials__letter-sep',
+          label: firstLetter.toUpperCase(),
+        });
+      }
+      
       credsListMarkup += templates.credCard(cred, ndx);
     });
-    credsList.innerHTML = credsListMarkup;
+    credsList.innerHTML = `<div>${credsListMarkup}</div>`;
     
     credsList.removeEventListener('click', handleCredCardClick);
     credsList.addEventListener('click', handleCredCardClick);
