@@ -112,6 +112,7 @@
         </custom-drop-down>
         <custom-drop-down label="User">
           <button slot="ddItems" type="button" id="deleteUser">Delete Account</button>
+          <button slot="ddItems" type="button" id="updateUser">Update Account</button>
           <button slot="ddItems" type="button" id="logout">Log Out</button>
         </custom-drop-down>
       </nav>
@@ -134,6 +135,7 @@
   let exportCredsBtn;
   let importCredsBtn;
   let deleteUserBtn;
+  let updateUserBtn;
   let credsBody;
   let credsList;
   let loadedCreds;
@@ -204,8 +206,12 @@
     });
   }
   
-  function debounceAndDiff({ form, startData, submitBtn }) {
+  function debounceAndDiff({ form, submitBtn }) {
+    const startData = window.utils.serializeForm(form);
     let tO;
+    
+    submitBtn.setAttribute('disabled', '');
+    
     form.addEventListener('input', () => {
       if (tO) clearTimeout(tO);
       tO = setTimeout(() => {
@@ -230,10 +236,9 @@
         const ndx = currEl.dataset.ndx;
         const dialog = createAddOrEditCredsDialog(loadedCreds[ndx], ndx);
         const form = dialog.querySelector('.creds-form');
-        const loadedData = window.utils.serializeForm(form);
         const submitBtn = form.querySelector('button');
         
-        debounceAndDiff({ form, startData: loadedData, submitBtn });
+        debounceAndDiff({ form, submitBtn });
       }
       else if (currEl.value === 'delete') {
         const ndx = currEl.dataset.ndx;
@@ -385,6 +390,7 @@
     exportCredsBtn = document.querySelector('#exportCreds');
     importCredsBtn = document.querySelector('#importCreds');
     deleteUserBtn = document.querySelector('#deleteUser');
+    updateUserBtn = document.querySelector('#updateUser');
     filterStyles = credentialsEl.querySelector('#filterStyles');
     credsBody = credentialsEl.querySelector('.credentials__body');
     credsList = credentialsEl.querySelector('.credentials__list');
@@ -450,6 +456,59 @@
             })
             .catch(({ error }) => { alert(error); });
         },
+      });
+    });
+    
+    updateUserBtn.addEventListener('click', () => {
+      const {
+        username: currentUsername,
+        password: currentPassword,
+      } = window.utils.storage.get('userData');
+      const dialog = document.createElement('custom-dialog');
+      dialog.title = 'Update Account';
+      dialog.innerHTML = `
+        <form
+          slot="dialogBody"
+          class="update-user-form"
+          action="/api/user/update"
+          method="POST"
+          autocomplete="off"
+          spellcheck="false"
+        >
+          <input type="hidden" name="oldData[username]" value="${currentUsername}" />
+          <input type="hidden" name="oldData[password]" value="${currentPassword}" />
+          ${window.templates.labeledInput({ label: 'Username', name: 'newData[username]', value: currentUsername, required: true })}
+          ${window.templates.labeledInput({ label: 'Password', name: 'newData[password]', value: currentPassword, required: true })}
+          <nav class="segmented-dialog-nav">
+            <button type="text" value="cancel">Cancel</button>
+            <button value="update">Update</button>
+          </nav>
+        </form>
+      `;
+      
+      dialog.show();
+      
+      const form = dialog.querySelector('form');
+      const cancelBtn = form.querySelector('[value="cancel"]');
+      
+      debounceAndDiff({
+        form,
+        submitBtn: form.querySelector('[value="update"]'),
+      });
+      
+      form.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        
+        window.utils.postData(form.action, form)
+          .then(({ username, password }) => {
+            window.utils.storage.set({ userData: { username, password } })
+            loadCredentials();
+            dialog.close();
+          })
+          .catch(({ error }) => { alert(error); });
+      });
+      cancelBtn.addEventListener('click', () => {
+        dialog.close();
       });
     });
     

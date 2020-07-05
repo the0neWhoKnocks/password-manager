@@ -34,10 +34,11 @@
       - Endpoint will have to batch process the creds
     - [x] Log Out
     - [x] Delete Account
-    - [ ] Update Profile
+    - [x] Update Profile
       - If `username` changes, `users.json` needs to update
-      - If `password` changes, `cres_<uid>.json` & `users.json` needs to update.
+      - If `password` changes, `creds_<uid>.json` & `users.json` needs to update.
         - Get all un-encoded data, then re-encode with new `password`.
+        - `creds_` file would have to be renamed. Probably just easier to delete the old file.
       - Update current `storage` data... or just log them out and have them log back in.
   - [x] A fuzzy Search bar, allowing a User to filter credentials down.
   - List of credentials
@@ -59,5 +60,6 @@
     - ‎A User's UID will be based on a combination of their username and password
   - ‎`credentials.<USER_UID>.json`
 - [ ] Icon: Lock with asterisk (star used for password obfuscation) for hole
+- [ ] Clean up duplication in API
 
 Inspiration: https://github.com/hasukmistry/passman
