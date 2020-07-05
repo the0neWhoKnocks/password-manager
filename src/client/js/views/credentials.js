@@ -272,7 +272,10 @@
           renderCards(creds);
         }
       })
-      .catch(({ error }) => { alert(error); });
+      .catch((err) => {
+        const error = (err.error) ? err.error : err.stack;
+        alert(error);
+      });
   }
   
   function createAddOrEditCredsDialog(currentData, ndx) {
