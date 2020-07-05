@@ -148,6 +148,51 @@
     }
   }
   
+  function deleteConfirmationDialog({
+    endpoint,
+    hiddenInputs = [],
+    msg = '',
+    onCancel,
+    onSubmit,
+  }) {
+    const dialog = document.createElement('custom-dialog');
+    dialog.modal = true;
+    dialog.innerHTML = `
+      <form
+        slot="dialogBody"
+        class="delete-confirmation"
+        method="POST"
+        action="${endpoint}"
+      >
+        ${hiddenInputs.map(({ name, value }) => `
+          <input type="hidden" name="${name}" value="${value}" />
+        `).join('')}
+        <p class="delete-confirmation__msg">
+          Are you sure you want to delete ${msg}?
+        </p>
+        <nav>
+          <button type="button" value="no">No</button>
+          <button>Yes</button>
+        </nav>
+      </form>
+    `;
+    
+    dialog.show();
+    
+    const form = dialog.querySelector('form');
+    const cancelBtn = dialog.querySelector('[value="no"]');
+    
+    form.addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      if (onSubmit) onSubmit({ dialog, form });
+    });
+    
+    cancelBtn.addEventListener('click', () => {
+      if (onCancel) onCancel();
+      dialog.close();
+    });
+  }
+  
   function handleCredCardClick(ev) {
     const currEl = ev.target;
     
@@ -178,44 +223,22 @@
       else if (currEl.value === 'delete') {
         const ndx = currEl.dataset.ndx;
         const { username } = window.utils.storage.get('userData');
-        const confirmDialog = document.createElement('custom-dialog');
-        confirmDialog.modal = true;
-        confirmDialog.innerHTML = `
-          <form
-            slot="dialogBody"
-            class="delete-confirmation"
-            method="POST"
-            action="/api/user/creds/delete"
-          >
-            <input type="hidden" name="credsNdx" value="${ndx}" />
-            <input type="hidden" name="username" value="${username}" />
-            <p>
-              Are you sure you want to delete <b>"${loadedCreds[ndx].label}"</b>?
-            </p>
-            <nav>
-              <button type="button" value="no">No</button>
-              <button>Yes</button>
-            </nav>
-          </form>
-        `;
         
-        confirmDialog.show();
-        
-        const form = confirmDialog.querySelector('form');
-        const cancelBtn = confirmDialog.querySelector('[value="no"]');
-        
-        form.addEventListener('submit', (ev) => {
-          ev.preventDefault();
-          
-          window.utils.postData(form.action, form)
-            .then(() => {
-              loadCredentials();
-              confirmDialog.close();
-            })
-            .catch(({ error }) => { alert(error); });
-        });
-        cancelBtn.addEventListener('click', () => {
-          confirmDialog.close();
+        deleteConfirmationDialog({
+          endpoint: '/api/user/creds/delete',
+          hiddenInputs: [
+            { name: 'credsNdx', value: ndx },
+            { name: 'username', value: username },
+          ],
+          msg: `<b>"${loadedCreds[ndx].label}"</b>`,
+          onSubmit: ({ dialog, form }) => {
+            window.utils.postData(form.action, form)
+              .then(() => {
+                loadCredentials();
+                dialog.close();
+              })
+              .catch(({ error }) => { alert(error); });
+          },
         });
       }
     }
