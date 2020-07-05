@@ -105,7 +105,7 @@
           <button slot="ddItems" type="button" id="importCreds">Import</button>
         </custom-drop-down>
         <custom-drop-down label="User">
-          <button slot="ddItems" type="button">Delete Account</button>
+          <button slot="ddItems" type="button" id="deleteUser">Delete Account</button>
           <button slot="ddItems" type="button" id="logout">Log Out</button>
         </custom-drop-down>
       </nav>
@@ -125,6 +125,7 @@
   let addCredsBtn;
   let exportCredsBtn;
   let importCredsBtn;
+  let deleteUserBtn;
   let credsBody;
   let credsList;
   let loadedCreds;
@@ -336,6 +337,7 @@
     addCredsBtn = document.querySelector('#addCreds');
     exportCredsBtn = document.querySelector('#exportCreds');
     importCredsBtn = document.querySelector('#importCreds');
+    deleteUserBtn = document.querySelector('#deleteUser');
     credsBody = credentialsEl.querySelector('.credentials__body');
     credsList = credentialsEl.querySelector('.credentials__list');
     
@@ -374,6 +376,25 @@
             loadCredentials();
           })
           .catch(({ error }) => { alert(error); });
+      });
+    });
+    
+    deleteUserBtn.addEventListener('click', () => {
+      deleteConfirmationDialog({
+        endpoint: '/api/user/delete',
+        hiddenInputs: [
+          { name: 'username', value: username },
+        ],
+        msg: 'your profile',
+        onSubmit: ({ dialog, form }) => {
+          window.utils.postData(form.action, form)
+            .then(() => {
+              window.utils.storage.clear();
+              dialog.close();
+              window.location.reload();
+            })
+            .catch(({ error }) => { alert(error); });
+        },
       });
     });
     

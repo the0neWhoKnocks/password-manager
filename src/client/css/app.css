@@ -407,3 +407,6 @@ form.input-creator-form > * {
 .delete-confirmation nav button:not(:first-child) {
   margin-left: 0.5em;
 }
+.delete-confirmation__msg {
+  margin-top: 0;
+}
