@@ -1,9 +1,8 @@
 (() => {
+  const pad = (num, token='00') => token.substring(0, token.length-`${num}`.length) + num;
+  
   const templates = {
-    credCard: ({
-      label,
-      ...creds
-    }, ndx) => {
+    credCard: ({ label, ...creds }, ndx) => {
       const { customFields = {}, ...standardFields } = creds;
       const listItem = (obj, prop) => `
         <div class="credentials-card__list-item">
@@ -32,11 +31,7 @@
       `;
     },
     customFieldsCount: 0,
-    customField: ({
-      hiddenValue,
-      label,
-      value,
-    }) => {
+    customField: ({ hiddenValue, label, value }) => {
       templates.customFieldsCount += 1;
       return window.templates.labeledInput({
         hiddenValue,
@@ -106,8 +101,8 @@
       <nav class="credentials__top-nav">
         <custom-drop-down label="Credentials">
           <button slot="ddItems" type="button" id="addCreds">Add</button>
-          <button slot="ddItems" type="button">Export</button>
-          <button slot="ddItems" type="button">Import</button>
+          <button slot="ddItems" type="button" id="exportCreds">Export</button>
+          <button slot="ddItems" type="button" id="importCreds">Import</button>
         </custom-drop-down>
         <custom-drop-down label="User">
           <button slot="ddItems" type="button">Delete Account</button>
@@ -128,6 +123,8 @@
   let credentialsEl;
   let logoutBtn;
   let addCredsBtn;
+  let exportCredsBtn;
+  let importCredsBtn;
   let credsBody;
   let credsList;
   let loadedCreds;
@@ -305,6 +302,8 @@
   }
   
   window.showCredentials = function showCredentials() {
+    const { username, password } = window.utils.storage.get('userData');
+    
     credentialsEl = document.createElement('div');
     credentialsEl.classList.add('credentials');
     credentialsEl.innerHTML = templates.view();
@@ -312,6 +311,8 @@
     
     logoutBtn = document.querySelector('#logout');
     addCredsBtn = document.querySelector('#addCreds');
+    exportCredsBtn = document.querySelector('#exportCreds');
+    importCredsBtn = document.querySelector('#importCreds');
     credsBody = credentialsEl.querySelector('.credentials__body');
     credsList = credentialsEl.querySelector('.credentials__list');
     
@@ -319,8 +320,31 @@
       window.utils.storage.clear();
       window.location.reload();
     });
+    
     addCredsBtn.addEventListener('click', () => {
       createAddOrEditCredsDialog();
+    });
+    
+    exportCredsBtn.addEventListener('click', () => {
+      const exportData = {
+        app: {
+          schema: '1.0',
+          user: { username, password },
+        },
+        creds: loadedCreds,
+      };
+      
+      const date = new Date();
+      const file = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(file);
+      a.download = `creds-backup-${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}.json`;
+      a.click();
+      a.remove();
+    });
+    
+    importCredsBtn.addEventListener('click', () => {
+      alert('import creds');
     });
     
     loadCredentials();
