@@ -326,21 +326,18 @@
     });
     
     exportCredsBtn.addEventListener('click', () => {
-      const exportData = {
-        app: {
-          schema: '1.0',
-          user: { username, password },
-        },
-        creds: loadedCreds,
-      };
-      
       const date = new Date();
-      const file = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(file);
-      a.download = `creds-backup-${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}.json`;
-      a.click();
-      a.remove();
+      window.utils.saveFile({
+        data: JSON.stringify({
+          app: {
+            schema: '1.0',
+            user: { username, password },
+          },  
+          creds: loadedCreds,
+        }, null, 2),
+        name: `creds-backup-${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}.json`,
+        type: window.utils.saveFile.FILE_TYPE__JSON,
+      });
     });
     
     importCredsBtn.addEventListener('click', () => {
