@@ -1,4 +1,4 @@
-const { existsSync, readFile, writeFile } = require('fs');
+const { existsSync, readFile, unlink, writeFile } = require('fs');
 const crypto = require('crypto');
 const parseReq = require('../utils/parseReq');
 const returnErrorResp = require('../utils/returnErrorResp');
@@ -136,6 +136,39 @@ function createUser({ req, resp }) {
       }
     })
     .catch(returnErrorResp({ label: 'Create User request parse failed', resp }));
+}
+
+function deleteUser({ req, resp }) {
+  parseReq(req)
+    .then(async ({ username }) => {
+      if (!username) returnErrorResp({ resp })('`username` was not passed');
+      else {
+        const encryptedUsername = (await encrypt(username)).value;
+        const users = await loadUsers();
+        const filePath = getUsersCredentialsPath(encryptedUsername);
+        
+        const deleteUsersCreds = new Promise((resolve, reject) => {
+          unlink(filePath, (err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+        const deleteUser = new Promise((resolve, reject) => {
+          delete users[encryptedUsername];
+          writeFile(USERS_PATH, JSON.stringify(users, null, 2), 'utf8', (err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+        
+        Promise.all([deleteUsersCreds, deleteUser])
+          .then(() => {
+            returnResp({ prefix: 'DELETED', label: `User "${username}"`, resp });
+          })
+          .catch(returnErrorResp({ label: 'Delete User failed', resp }));
+      }
+    })
+    .catch(returnErrorResp({ label: 'Delete User request parse failed', resp }));
 }
 
 function login({ req, resp }) {
@@ -324,6 +357,7 @@ module.exports = function apiMiddleware({ req, resp, urlPath }) {
       else if (urlPath.endsWith('/user/creds/import')) importCreds({ req, resp });
       else if (urlPath.endsWith('/user/creds/load')) loadCreds({ req, resp });
       else if (urlPath.endsWith('/user/creds/update')) modifyCreds({ req, resp });
+      else if (urlPath.endsWith('/user/delete')) deleteUser({ req, resp });
       else if (urlPath.endsWith('/user/login')) login({ req, resp });
       else returnErrorResp({ label: 'Missing API path', resp })(new Error(`The endpoint "${urlPath}" does not exist`));
     });
