@@ -238,6 +238,16 @@ custom-dialog button {
   align-items: center;
 }
 
+.credentials__letter-sep {
+  text-align: left;
+  margin: 1em 0;
+  padding-left: 1em;
+  opacity: 0.5;
+}
+.credentials__letter-sep:first-of-type {
+  margin-top: 0;
+}
+
 .credentials-card {
   width: 450px;
   padding: 0.5em 1em 3em;
