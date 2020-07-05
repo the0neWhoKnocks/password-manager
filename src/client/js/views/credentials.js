@@ -181,7 +181,7 @@
         <p class="delete-confirmation__msg">
           Are you sure you want to delete ${msg}?
         </p>
-        <nav>
+        <nav class="segmented-dialog-nav">
           <button type="button" value="no">No</button>
           <button>Yes</button>
         </nav>
