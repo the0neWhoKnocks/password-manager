@@ -229,6 +229,27 @@ function modifyCreds({ req, resp }) {
     .catch(returnErrorResp({ label: `Modify Creds request parse failed`, resp }));
 }
 
+function importCreds({ req, resp }) {
+  parseReq(req)
+    .then(async ({ creds, user: { username, password } }) => {
+      const encryptedUsername = (await encrypt(username)).value;
+      const filePath = getUsersCredentialsPath(encryptedUsername);
+      const loadedCreds = await loadUsersCredentials(filePath);
+      const pendingEncryptions = creds.map(async (currCreds) => (await encrypt(currCreds, password)).combined);
+      
+      Promise.all(pendingEncryptions)
+        .then((encryptedCreds) => {
+          const combinedCreds = [ ...loadedCreds, ...encryptedCreds ];
+          writeFile(filePath, JSON.stringify(combinedCreds, null, 2), 'utf8', (err) => {
+            if (err) returnErrorResp({ label: 'Import Creds write failed', resp })(err);
+            else returnResp({ prefix: 'IMPORT', label: 'Creds', resp });
+          });
+        })
+        .catch(returnErrorResp({ label: `Import Creds encryption failed`, resp }));
+    })
+    .catch(returnErrorResp({ label: `Import Creds request parse failed`, resp }));
+}
+
 function deleteCreds({ req, resp }) {
   parseReq(req)
     .then(async (data) => {
@@ -300,6 +321,7 @@ module.exports = function apiMiddleware({ req, resp, urlPath }) {
       else if (urlPath.endsWith('/user/create')) createUser({ req, resp });
       else if (urlPath.endsWith('/user/creds/add')) modifyCreds({ req, resp });
       else if (urlPath.endsWith('/user/creds/delete')) deleteCreds({ req, resp });
+      else if (urlPath.endsWith('/user/creds/import')) importCreds({ req, resp });
       else if (urlPath.endsWith('/user/creds/load')) loadCreds({ req, resp });
       else if (urlPath.endsWith('/user/creds/update')) modifyCreds({ req, resp });
       else if (urlPath.endsWith('/user/login')) login({ req, resp });
