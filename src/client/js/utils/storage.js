@@ -3,12 +3,8 @@ if (!window.utils) window.utils = {};
 window.utils.storage = {
   key: 'pass_man',
   clear: function clearStorageData() {
-    let storageType;
-    
-    if (window.sessionStorage[this.key]) storageType = 'sessionStorage';
-    else if (window.localStorage[this.key]) storageType = 'localStorage';
-    
-    if (storageType) window[storageType].removeItem(this.key)
+    window.localStorage.removeItem(this.key);
+    window.sessionStorage.removeItem(this.key);
   },
   get: function getStorageData(prop) {
     let data;
@@ -25,10 +21,15 @@ window.utils.storage = {
     return data;
   },
   set: function setStorageData(data, useLocal) {
+    let _useLocal = useLocal;
     let storageType;
     
+    // if `localStorage` is currently in use, continue to use it. `clear`
+    // will be the only way to get out of this behavior.
+    if (window.localStorage[this.key]) _useLocal = true;
+    
     // ensure there's only ever one source of truth for data
-    if (useLocal) {
+    if (_useLocal) {
       storageType = 'localStorage';
       window.sessionStorage.removeItem(this.key);
     }

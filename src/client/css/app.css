@@ -230,6 +230,9 @@ custom-dialog button {
 .credentials__body.has--no-credentials .no-creds-msg {
   display: block;
 }
+.credentials__body.has--no-credentials .credentials__filter-input {
+  display: none;
+}
 
 .credentials__list {
   height: 100%;
@@ -425,7 +428,7 @@ form.input-creator-form > * {
   border: solid 1px;
   background: transparent;
 }
-.segmented-dialog-nav button:hover {
+.segmented-dialog-nav button:hover:not(:disabled) {
   color: #fff;
   background: #000;
 }
