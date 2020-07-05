@@ -371,8 +371,6 @@
   }
   
   window.showCredentials = function showCredentials() {
-    const { username, password } = window.utils.storage.get('userData');
-    
     credentialsEl = document.createElement('div');
     credentialsEl.classList.add('credentials');
     credentialsEl.innerHTML = templates.view();
@@ -398,7 +396,9 @@
     });
     
     exportCredsBtn.addEventListener('click', () => {
+      const { username, password } = window.utils.storage.get('userData');
       const date = new Date();
+      
       window.utils.saveFile({
         data: JSON.stringify({
           app: {
@@ -413,6 +413,8 @@
     });
     
     importCredsBtn.addEventListener('click', () => {
+      const { username, password } = window.utils.storage.get('userData');
+      
       window.utils.loadFile().then((data) => {
         const payload = {
           creds: JSON.parse(data).creds,
@@ -427,6 +429,8 @@
     });
     
     deleteUserBtn.addEventListener('click', () => {
+      const { username } = window.utils.storage.get('userData');
+      
       deleteConfirmationDialog({
         endpoint: '/api/user/delete',
         hiddenInputs: [
