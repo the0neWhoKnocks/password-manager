@@ -204,6 +204,21 @@
     });
   }
   
+  function debounceAndDiff({ form, startData, submitBtn }) {
+    let tO;
+    form.addEventListener('input', () => {
+      if (tO) clearTimeout(tO);
+      tO = setTimeout(() => {
+        if (JSON.stringify(startData) !== JSON.stringify(window.utils.serializeForm(form))) {
+          submitBtn.removeAttribute('disabled');
+        }
+        else {
+          submitBtn.setAttribute('disabled', '');
+        }
+      }, 300);
+    });
+  }
+  
   function handleCredCardClick(ev) {
     const currEl = ev.target;
     
@@ -218,18 +233,7 @@
         const loadedData = window.utils.serializeForm(form);
         const submitBtn = form.querySelector('button');
         
-        let tO;
-        form.addEventListener('input', () => {
-          if (tO) clearTimeout(tO);
-          tO = setTimeout(() => {
-            if (JSON.stringify(loadedData) !== JSON.stringify(window.utils.serializeForm(form))) {
-              submitBtn.removeAttribute('disabled');
-            }
-            else {
-              submitBtn.setAttribute('disabled', '');
-            }
-          }, 300);
-        });
+        debounceAndDiff({ form, startData: loadedData, submitBtn });
       }
       else if (currEl.value === 'delete') {
         const ndx = currEl.dataset.ndx;
