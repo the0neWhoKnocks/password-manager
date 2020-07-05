@@ -11,12 +11,12 @@
 - Once logged in
   - Nav
     - + Add Credentials (button)
-      - [ ] Base inputs: Label, Website, Email, Username, Password
-      - [ ] + Add Custom (button): Allows User to add in custom fields
+      - [x] Base inputs: Label, Website, Email, Username, Password
+      - [x] + Add Custom (button): Allows User to add in custom fields
       - [ ] If a Website is provided, try to go scrape the site's favicon
       - [ ] Display a preview of the credentials below the inputs
-      - ‎[ ] Store all data in a JSON file. Each entry, UID with encoded Object of all entry data. When the User exports, it decodes everything. 
-    - [ ] Export Credentials (button): exports JSON with basic info that User entered, nothing specific to the App
+      - ‎[x] Store all data in a JSON file. Each entry, UID with encoded Object of all entry data. When the User exports, it decodes everything. 
+    - [x] Export Credentials (button): exports JSON with basic info that User entered, nothing specific to the App
       - Saves a JSON with an `app` & `creds` node.
         ```
         {
@@ -30,17 +30,22 @@
           creds: [],  
         }
         ```
-    - [ ] Import Credentials (button): exports JSON with basic info that User entered, nothing specific to the App
+    - [x] Import Credentials (button): exports JSON with basic info that User entered, nothing specific to the App
       - Endpoint will have to batch process the creds
-    - [ ] Log Out
-    - [ ] Delete Account
-  - [ ] A fuzzy Search bar, allowing a User to filter credentials down.
+    - [x] Log Out
+    - [x] Delete Account
+    - [ ] Update Profile
+      - If `username` changes, `users.json` needs to update
+      - If `password` changes, `cres_<uid>.json` & `users.json` needs to update.
+        - Get all un-encoded data, then re-encode with new `password`.
+      - Update current `storage` data... or just log them out and have them log back in.
+  - [x] A fuzzy Search bar, allowing a User to filter credentials down.
   - List of credentials
     - [ ] List item contains icon & label
     - [ ] Credential item (popup once user clicks on list item)
       - label as title
       - All input values from Add Credentials step
-    - [ ] Group creds under first label letter. Have a visual indicator of this
+    - [x] Group creds under first label letter. Have a visual indicator of this
       ```
       - A ----------------
       <card>
@@ -49,7 +54,7 @@
       <card>
       ```
 - [ ] Runs in Docker
-- [ ]‎`data` folder contains:
+- [x]‎`data` folder contains:
   - ‎`users.json`
     - ‎A User's UID will be based on a combination of their username and password
   - ‎`credentials.<USER_UID>.json`
