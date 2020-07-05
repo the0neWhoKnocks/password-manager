@@ -4,6 +4,7 @@
     const subCheck = (b[prop].toLowerCase() > a[prop].toLowerCase()) ? -1 : 0;
     return (a[prop].toLowerCase() > b[prop].toLowerCase()) ? 1 : subCheck;
   };
+  const strForDataAttr = (str) => str.toLowerCase().replace(/(\s|_)/g, '-');
   
   const templates = {
     credCard: ({ label, ...creds }, ndx) => {
@@ -21,7 +22,7 @@
       `;
       
       return `
-        <div class="credentials-card">
+        <div class="credentials-card" data-card-label="${strForDataAttr(label)}">
           <header class="credentials-card__label">${label}</header>
           <div class="credentials-card__list">
             ${Object.keys(standardFields).map((prop) => listItem(standardFields, prop)).join('')}
@@ -102,6 +103,7 @@
       `;
     },
     view: () => `
+      <style id="filterStyles"></style>
       <nav class="credentials__top-nav">
         <custom-drop-down label="Credentials">
           <button slot="ddItems" type="button" id="addCreds">Add</button>
@@ -118,8 +120,10 @@
         <div class="no-creds-msg">
           No credentials present. Go to Credentials &gt; Add
         </div>
-        <div>Search Bar</div>
-        <div class="credentials__list"></div>
+        <div class="credentials__list">
+          <input class="credentials__filter-input" type="text" placeholder="Filter by Label" />
+          <div class="credentials__cards"></div>
+        </div>
       </div>
     `,
   };
@@ -133,6 +137,8 @@
   let credsBody;
   let credsList;
   let loadedCreds;
+  let cardsEl;
+  let filterStyles;
   
   function addValueToClipboard(el) {
     const temp = document.createElement('textarea');
@@ -266,10 +272,25 @@
       
       credsListMarkup += templates.credCard(cred, ndx);
     });
-    credsList.innerHTML = `<div>${credsListMarkup}</div>`;
+    cardsEl.innerHTML = credsListMarkup;
     
-    credsList.removeEventListener('click', handleCredCardClick);
-    credsList.addEventListener('click', handleCredCardClick);
+    const filterInput = credsList.querySelector('.credentials__filter-input');
+    
+    cardsEl.removeEventListener('click', handleCredCardClick);
+    cardsEl.addEventListener('click', handleCredCardClick);
+    
+    filterInput.addEventListener('input', (ev) => {
+      const filter = ev.currentTarget.value;
+      const filterRule = (filter !== '')
+        ? `
+          .credentials__letter-sep,
+          .credentials-card:not([data-card-label*="${strForDataAttr(filter)}"]) {
+            display: none;
+          }
+        `
+        : '';
+      filterStyles.textContent = filterRule;
+    });
   }
   
   function loadCredentials() {
@@ -278,7 +299,7 @@
         const MODIFIER__NO_CREDS = 'has--no-credentials';
         
         credsBody.classList.remove('is--loading');
-        credsList.innerHTML = '';
+        cardsEl.innerHTML = '';
         
         loadedCreds = creds;
         
@@ -362,8 +383,10 @@
     exportCredsBtn = document.querySelector('#exportCreds');
     importCredsBtn = document.querySelector('#importCreds');
     deleteUserBtn = document.querySelector('#deleteUser');
+    filterStyles = credentialsEl.querySelector('#filterStyles');
     credsBody = credentialsEl.querySelector('.credentials__body');
     credsList = credentialsEl.querySelector('.credentials__list');
+    cardsEl = credsList.querySelector('.credentials__cards');
     
     logoutBtn.addEventListener('click', () => {
       window.utils.storage.clear();

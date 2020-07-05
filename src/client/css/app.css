@@ -10,8 +10,10 @@
 }
 
 :root {
+  --credCardWidth: 450px;
   --copiedMsgDuration: 2000ms;
   --color__cardBorders: #999;
+  --color__credsBodyBG: #eee;
 }
 
 *, *::before, *::after {
@@ -196,7 +198,7 @@ custom-dialog button {
   display: flex;
   justify-content: center;
   position: relative;
-  z-index: 1;
+  z-index: 5;
 }
 
 .no-creds-msg {
@@ -215,7 +217,7 @@ custom-dialog button {
 .credentials__body {
   height: 100%;
   overflow: hidden;
-  background: #eee;
+  background: var(--color__credsBodyBG);
   position: relative;
 }
 .credentials__body .spinner {
@@ -231,11 +233,21 @@ custom-dialog button {
 
 .credentials__list {
   height: 100%;
-  padding: 2em 0;
+  padding: 1em 0 2em;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.credentials__filter-input {
+  width: var(--credCardWidth);
+  margin-bottom: 3em;
+  padding: 1em;
+  box-shadow: 0 0 10px 32px var(--color__credsBodyBG);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .credentials__letter-sep {
@@ -247,9 +259,12 @@ custom-dialog button {
 .credentials__letter-sep:first-of-type {
   margin-top: 0;
 }
+.credentials__letter-sep > * {
+  background: var(--color__credsBodyBG);
+}
 
 .credentials-card {
-  width: 450px;
+  width: var(--credCardWidth);
   padding: 0.5em 1em 3em;
   border: solid 1px var(--color__cardBorders, currentColor);
   border-radius: 0.25em;
