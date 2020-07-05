@@ -341,7 +341,17 @@
     });
     
     importCredsBtn.addEventListener('click', () => {
-      alert('import creds');
+      window.utils.loadFile().then((data) => {
+        const payload = {
+          creds: JSON.parse(data).creds,
+          user: { username, password },
+        };
+        window.utils.postData('/api/user/creds/import', payload)
+          .then(() => {
+            loadCredentials();
+          })
+          .catch(({ error }) => { alert(error); });
+      });
     });
     
     loadCredentials();
