@@ -11,6 +11,7 @@
 
 :root {
   --copiedMsgDuration: 2000ms;
+  --color__cardBorders: #999;
 }
 
 *, *::before, *::after {
@@ -240,11 +241,12 @@ custom-dialog button {
 .credentials-card {
   width: 450px;
   padding: 0.5em 1em 3em;
-  border: solid 1px;
+  border: solid 1px var(--color__cardBorders, currentColor);
   border-radius: 0.25em;
   background: #fff;
-  box-shadow: 0 4px 12px 2px rgba(0,0,0,0.25);
+  box-shadow: 0 2px 3px 1px rgba(0, 0, 0, 0.25);
   position: relative;
+  overflow: hidden;
 }
 .credentials-card:not(:first-child) {
   margin-top: 1em;
@@ -253,7 +255,7 @@ custom-dialog button {
   font-weight: bold;
   text-transform: capitalize;
   line-height: 2em;
-  border-bottom: solid 1px;
+  border-bottom: solid 1px var(--color__cardBorders, currentColor);
   margin-bottom: 1em;
 }
 .credentials-card__list {
@@ -305,7 +307,7 @@ custom-dialog button {
   animation-fill-mode: forwards;
 }
 .credentials-card__ui {
-  border-top: solid 1px;
+  border-top: solid 1px var(--color__cardBorders, currentColor);
   display: flex;
   position: absolute;
   bottom: 0;
@@ -319,8 +321,12 @@ custom-dialog button {
   background: transparent;
   cursor: pointer;
 }
+.credentials-card__ui button:hover {
+  color: #fff;
+  background: #333;
+}
 .credentials-card__ui button:not(:first-of-type) {
-  border-left: solid 1px;
+  border-left: solid 1px var(--color__cardBorders, currentColor);
 }
 .credentials-card__ui button[value="delete"] {
   width: 32%;
