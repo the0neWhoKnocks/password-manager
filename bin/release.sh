@@ -158,20 +158,57 @@ if [[ "$bump" != "" ]]; then
     LATEST_ID=$(docker images | grep -E "$DOCKER_USER/$APP_NAME.*latest" | awk '{print $3}')
     handleError $? "Couldn't get latest image id"
     
+    versionString="v$newVersion"
+    
     # log in (so the image can be pushed)
     docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
     handleError $? "Couldn't log in to Docker"
     # add and commit relevant changes
     git add CHANGELOG.md package.json package-lock.json
-    git commit -m "Bump to v$newVersion"
+    git commit -m "Bump to $versionString"
     # tag all the things
-    git tag -a "v$newVersion" -m "v$newVersion"$'\n\n'"$changes"
-    docker tag "$LATEST_ID" "$DOCKER_USER/$APP_NAME:v$newVersion"
+    gitChangeLogMsg="$versionString"$'\n\n'"$changes"
+    git tag -a "$versionString" -m "$gitChangeLogMsg"
+    docker tag "$LATEST_ID" "$DOCKER_USER/$APP_NAME:$versionString"
     handleError $? "Couldn't tag Docker image"
     # push up the tags
     git push --follow-tags
-    docker push "$DOCKER_USER/$APP_NAME:v$newVersion"
+    docker push "$DOCKER_USER/$APP_NAME:$versionString"
     docker push "$DOCKER_USER/$APP_NAME:latest"
+    # create an actual release
+    ghToken=$(git config --global github.token)
+    if [[ "$ghToken" != "" ]]; then
+      branch=$(git rev-parse --abbrev-ref HEAD)
+      
+      remoteOriginURL=$(git config --get remote.origin.url)
+      regEx="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
+      if [[$remoteOriginURL =~ $regEx]]; then
+        user=${BASH_REMATCH[4]}
+        repo=${BASH_REMATCH[5]}
+      fi
+      
+      jsonPayload="{ \"tag_name\": \"$versionString\", \"target_commitish\": \"$branch\", \"name\": \"$versionString\", \"body\": \"$gitChangeLogMsg\", \"draft\": false, \"prerelease\": false }"
+      # encode newlines for JSON
+      jsonPayload=$(echo "$jsonPayload" | sed -z 's/\n/\\n/g')
+      # remove trailing newline
+      jsonPayload=${jsonPayload%$'\\n'}
+      
+      releaseApiURL="https://api.github.com/repos/$user/$repo/releases?access_token=$ghToken"
+      
+      echo "[RELEASE] Payload: $jsonPayload"
+      echo "[RELEASE] URL: \"$releaseApiURL\""
+      
+      # https://developer.github.com/v3/repos/releases/#create-a-release
+      curl \
+        -H "Content-Type: application/json" \
+        -X POST \
+        -d "$jsonPayload" \
+        --silent --output /dev/null --show-error --fail \
+        "$releaseApiURL"
+      handleError $? "Couldn't promote tag to a release"
+    else
+      echo "[WARN] Skipping GH release creation: No GH token found";
+    fi
   else
     # reset changelog
     echo "$originalLog" > "$filename"

@@ -44,6 +44,9 @@ npm run start:dev
    - To skip having to enter a Docker password every time, create a
    `.dockercreds` file in the same directory as `release.sh` and put your
    password in there.
+   - In order to automatically convert git tags to actual releases you'll need
+   to generate a [Personal Access Token](https://github.com/settings/tokens),
+   and add it to your global git config `git config --global github.token <YOUR_TOKEN>`.
 
 If something happens during the final stage of the release, you'll have to
 manually reset some things.
