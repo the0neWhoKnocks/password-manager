@@ -1,6 +1,12 @@
 # Changelog
 ---
 
+## v1.1.1
+
+- [a27e880](https://github.com/the0neWhoKnocks/password-manager/commit/a27e880) Patched GH release code
+
+---
+
 ## v1.1.0
 
 - [5b078b5](https://github.com/the0neWhoKnocks/password-manager/commit/5b078b5) Updated Docker caching strategy
