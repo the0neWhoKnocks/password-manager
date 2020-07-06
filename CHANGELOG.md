@@ -1,6 +1,12 @@
 # Changelog
 ---
 
+## v1.1.2
+
+- [73be43e](https://github.com/the0neWhoKnocks/password-manager/commit/73be43e) Updated GH release API request
+
+---
+
 ## v1.1.1
 
 - [a27e880](https://github.com/the0neWhoKnocks/password-manager/commit/a27e880) Patched GH release code
