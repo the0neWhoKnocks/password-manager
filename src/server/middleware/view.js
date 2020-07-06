@@ -52,6 +52,16 @@ module.exports = function viewMiddleware({ resp }) {
             <meta http-equiv="content-type" content="text/html; charset=UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1 minimum-scale=1">
             
+            <link rel="apple-touch-icon" sizes="180x180" href="/imgs/icons/apple-touch-icon.png">
+            <link rel="icon" type="image/png" sizes="32x32" href="/imgs/icons/favicon-32x32.png">
+            <link rel="icon" type="image/png" sizes="16x16" href="/imgs/icons/favicon-16x16.png">
+            <link rel="manifest" href="/imgs/icons/site.webmanifest">
+            <link rel="mask-icon" href="/imgs/icons/safari-pinned-tab.svg" color="#000000">
+            <link rel="shortcut icon" href="/imgs/icons/favicon.ico">
+            <meta name="msapplication-TileColor" content="#ffffff">
+            <meta name="msapplication-config" content="/imgs/icons/browserconfig.xml">
+            <meta name="theme-color" content="#000000">
+            
             <link rel="stylesheet" href="/css/app.css"/>
             ${jsFilePaths.map(s => `<script src="${s}"></script>`).join(`\n\t\t\t`)}
             <script>
