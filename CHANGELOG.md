@@ -1,2 +1,12 @@
 # Changelog
 ---
+
+## v1.1.0
+
+- [5b078b5](https://github.com/the0neWhoKnocks/password-manager/commit/5b078b5) Updated Docker caching strategy
+- [4b87470](https://github.com/the0neWhoKnocks/password-manager/commit/4b87470) Added icons
+- [ff1a261](https://github.com/the0neWhoKnocks/password-manager/commit/ff1a261) Updated README
+- [bee1592](https://github.com/the0neWhoKnocks/password-manager/commit/bee1592) Updated README
+- [983eeec](https://github.com/the0neWhoKnocks/password-manager/commit/983eeec) A GitHub release will now be created while releasing
+
+---
