@@ -178,6 +178,10 @@ if [[ "$bump" != "" ]]; then
     # create an actual release
     ghToken=$(git config --global github.token)
     if [[ "$ghToken" != "" ]]; then
+      echo;
+      echo "[ CREATE ] GitHub Release ========================="
+      echo;
+      
       branch=$(git rev-parse --abbrev-ref HEAD)
       
       remoteOriginURL=$(git config --get remote.origin.url)
@@ -193,14 +197,15 @@ if [[ "$bump" != "" ]]; then
       # remove trailing newline
       jsonPayload=${jsonPayload%$'\\n'}
       
-      releaseApiURL="https://api.github.com/repos/$user/$repo/releases?access_token=$ghToken"
+      releaseApiURL="https://api.github.com/repos/$user/$repo/releases"
       
-      echo "[RELEASE] Payload: $jsonPayload"
-      echo "[RELEASE] URL: \"$releaseApiURL\""
+      echo "  Payload: $jsonPayload"
+      echo "  URL: \"$releaseApiURL\""
       
       # https://developer.github.com/v3/repos/releases/#create-a-release
       curl \
         -H "Content-Type: application/json" \
+        -H "Authorization: token $ghToken" \
         -X POST \
         -d "$jsonPayload" \
         --silent --output /dev/null --show-error --fail \
