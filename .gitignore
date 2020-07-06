@@ -6,5 +6,6 @@ creds-backup-*
 
 # Folders
 .ignore
-node_modules
+assets
 data
+node_modules
