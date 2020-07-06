@@ -19,6 +19,13 @@ credentials, this can save you some scrolling.
 
 ---
 
+## Install
+
+To install in a Dockerized environment, you can utilize the `docker-compose.yml`
+file in this repo.
+
+---
+
 ## Development
 
 ### Installation
@@ -29,10 +36,16 @@ npm i
 
 ### Run the App
 
+**Via Node**
 ```sh
 npm start
 # or for Dev (starts a BrowserSync & Nodemon watcher)
 npm run start:dev
+```
+
+**Via Docker**
+```sh
+docker-compose up
 ```
 
 ---
