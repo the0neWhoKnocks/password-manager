@@ -182,7 +182,7 @@ if [[ "$bump" != "" ]]; then
       
       remoteOriginURL=$(git config --get remote.origin.url)
       regEx="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
-      if [[$remoteOriginURL =~ $regEx]]; then
+      if [[ "$remoteOriginURL" =~ $regEx ]]; then
         user=${BASH_REMATCH[4]}
         repo=${BASH_REMATCH[5]}
       fi
