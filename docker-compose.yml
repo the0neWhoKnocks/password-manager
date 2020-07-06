@@ -1,0 +1,15 @@
+version: "3.4"
+
+services:
+  "password-manager":
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: password-manager
+    image: theonewhoknocks/password-manager
+    environment:
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    volumes:
+      - "${PWD}/data:/home/node/app/data"

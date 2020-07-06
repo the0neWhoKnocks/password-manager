@@ -8,5 +8,5 @@ module.exports.CLIENT_PATH = CLIENT_PATH;
 module.exports.CONFIG_PATH = `${DATA_PATH}/config.json`;
 module.exports.DATA_PATH = DATA_PATH;
 module.exports.PUBLIC_JS = `${CLIENT_PATH}/js`;
-module.exports.SERVER_PORT = 3000;
+module.exports.SERVER_PORT = process.env.SERVER_PORT || 3000;
 module.exports.USERS_PATH = `${DATA_PATH}/users.json`;
