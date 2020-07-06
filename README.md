@@ -52,7 +52,15 @@ docker-compose up
 
 ## Releasing
 
-1. Ensure the info in `./bin/releaseConfig.sh` is correct for your repo.
+1. Prep the repo
+   - Ensure the info in `./bin/releaseConfig.sh` is correct for your repo.
+   - Create a `CHANGELOG.md` if one does not already exist. The contents should
+   be this.
+      ```md
+      # Changelog
+      ---
+
+      ```
 1. Run `./bin/release.sh` and follow the steps.
    - To skip having to enter a Docker password every time, create a
    `.dockercreds` file in the same directory as `release.sh` and put your
