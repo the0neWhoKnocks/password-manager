@@ -54,12 +54,11 @@
       - B ----------------
       <card>
       ```
-- [ ] Runs in Docker
+- [x] Runs in Docker
 - [x]‎`data` folder contains:
   - ‎`users.json`
     - ‎A User's UID will be based on a combination of their username and password
   - ‎`credentials.<USER_UID>.json`
-- [ ] Icon: Lock with asterisk (star used for password obfuscation) for hole
+- [x] Icon: Lock with asterisk (star used for password obfuscation) for hole
 - [ ] Clean up duplication in API
-
-Inspiration: https://github.com/hasukmistry/passman
+- [x] Make version changes to package.json not bust Docker cache
