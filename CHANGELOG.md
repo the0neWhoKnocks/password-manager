@@ -1,6 +1,12 @@
 # Changelog
 ---
 
+## v1.1.3
+
+- [323bac5](https://github.com/the0neWhoKnocks/password-manager/commit/323bac5) Docker cache now won't bust on non-dependencies changes
+
+---
+
 ## v1.1.2
 
 - [73be43e](https://github.com/the0neWhoKnocks/password-manager/commit/73be43e) Updated GH release API request
