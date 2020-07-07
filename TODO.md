@@ -1,6 +1,6 @@
 # TODO
 
-- [ ] Labels & values don't always fit in Card
+- [x] Labels & values don't always fit in Card
 - [ ] Maybe stream load?
   - Have some sort of "Decrypting Data" message on load. Possibly return the
   percentage of items that have completed

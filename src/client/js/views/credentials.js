@@ -10,15 +10,16 @@
     credCard: ({ label, ...creds }, ndx) => {
       const { customFields = {}, ...standardFields } = creds;
       const listItem = (obj, prop) => `
-        <div class="credentials-card__list-item">
-          <label>${prop}</label>
-          <div>
-            <button class="credentials-card__list-item-value">
-              <span>${obj[prop]}</span>
-              <div class="clipboard-icon">&#x1F4CB;</div>
-            </button>
+        <button
+          class="credentials-card__list-item"
+          title="Click to copy value"
+        >
+          <div class="credentials-card__list-item-column">
+            <label>${prop}</label>
+            <div class="credentials-card__list-item-value">${obj[prop]}</div>
           </div>
-        </div>
+          <div class="credentials-card__clipboard-icon">&#x1F4CB;</div>
+        </button>
       `;
       
       return `
@@ -146,7 +147,7 @@
     const temp = document.createElement('textarea');
     temp.style.cssText = 'position: absolute; top: -100px; left: -100px;';
     document.body.appendChild(temp);
-    temp.value = el.querySelector('span').innerText;
+    temp.value = el.querySelector('.credentials-card__list-item-value').innerText;
     temp.select();
     document.execCommand('copy');
     document.body.removeChild(temp);
@@ -228,7 +229,7 @@
   function handleCredCardClick(ev) {
     const currEl = ev.target;
     
-    if (currEl.classList.contains('credentials-card__list-item-value')) {
+    if (currEl.classList.contains('credentials-card__list-item')) {
       addValueToClipboard(currEl);
     }
     else if (currEl.nodeName === 'BUTTON') {
