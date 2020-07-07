@@ -287,53 +287,72 @@ custom-dialog button {
   border-bottom: solid 1px var(--color__cardBorders, currentColor);
   margin-bottom: 1em;
 }
-.credentials-card__list {
-  width: 100%;
-  display: table;
-}
 .credentials-card__list-item {
-  display: table-row;
-}
-.credentials-card__list-item:not(:first-child) label + div {
-  padding-top: 0.5em;
-}
-.credentials-card__list-item label,
-.credentials-card__list-item label + div {
-  display: table-cell;
-}
-.credentials-card__list-item label {
-  text-transform: capitalize;
-  padding: 0.5em 1.5em 0.5em 0;
-}
-.credentials-card__list-item label + div {
   width: 100%;
-}
-.credentials-card__list-item-value {
-  width: 100%;
-  font-family: monospace;
-  padding: 0.5em;
-  display: flex;
+  font-size: 1em;
+  text-align: left;
+  padding: 0;
+  border: solid 1px var(--color__cardBorders);
+  background: transparent;
   cursor: pointer;
+  display: flex;
+  align-items: stretch;
   position: relative;
 }
-.credentials-card__list-item-value * {
-  user-select: none;
-  pointer-events: none;
-}
-.credentials-card__list-item-value span {
-  width: 100%;
-}
-.credentials-card__list-item-value.copied::after {
+.credentials-card__list-item.copied::after {
   content: 'Copied';
   width: 100%;
   height: 100%;
+  color: #045d80;
+  font-weight: bold;
   padding: 0.5em;
   background: #b1ffb1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: absolute;
   top: 0;
   left: 0;
   animation: copiedMsg var(--copiedMsgDuration);
   animation-fill-mode: forwards;
+}
+.credentials-card__list-item:not(:first-child) {
+  margin-top: 0.5em;
+}
+.credentials-card__list-item * {
+  user-select: none;
+  pointer-events: none;
+}
+.credentials-card__list-item-column {
+  overflow: hidden;
+  max-width: 100%;
+  flex: 1;
+}
+.credentials-card__list-item-column label,
+.credentials-card__list-item-value {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0.5em;
+}
+.credentials-card__list-item-column label {
+  color: var(--color__cardBorders);
+  font-weight: bold;
+  text-transform: capitalize;
+  display: block;
+}
+.credentials-card__list-item-value {
+  font-family: monospace;
+  font-size: 14px;
+  text-align: center;
+  border-top: dashed 1px var(--color__cardBorders);
+}
+.credentials-card__clipboard-icon {
+  padding: 0 0.25em;
+  border-left: dashed 1px var(--color__cardBorders);
+  background-color: var(--color__credsBodyBG);
+  display: flex;
+  align-items: center;
 }
 .credentials-card__ui {
   border-top: solid 1px var(--color__cardBorders, currentColor);
