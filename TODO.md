@@ -6,8 +6,8 @@
   percentage of items that have completed
   - https://stackoverflow.com/questions/46145738/stream-response-into-http-response
   - https://stackoverflow.com/questions/11906198/node-js-write-http-response-to-stream
-- [ ] On Add of a cred, don't load all creds again, just append to the current
-list of items.
+- [x] On Add, Update, or Deletion of a cred, don't load all creds again, just
+update the current data & re-render.
 - [x] On Add Custom Field, focus the input
 - [ ] Cancel load request if another request is made? Or batch, and do one at a time.
 - [x] Make Add Creds inputs `monospace`
