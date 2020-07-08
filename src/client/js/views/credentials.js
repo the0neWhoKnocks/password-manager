@@ -7,7 +7,7 @@
   const strForDataAttr = (str) => str.toLowerCase().replace(/(\s|_)/g, '-');
   
   const templates = {
-    credCard: ({ label, ...creds }, ndx) => {
+    credCard: ({ _ndx, label, ...creds }) => {
       const { customFields = {}, ...standardFields } = creds;
       const listItem = (obj, prop) => `
         <button
@@ -30,8 +30,8 @@
             ${Object.keys(customFields).map((prop) => listItem(customFields, prop)).join('')}
           </div>
           <nav class="credentials-card__ui">
-            <button type="text" value="delete" data-ndx="${ndx}">Delete</button>
-            <button type="text" value="edit" data-ndx="${ndx}">Edit</button>
+            <button type="text" value="delete" data-ndx="${_ndx}">Delete</button>
+            <button type="text" value="edit" data-ndx="${_ndx}">Edit</button>
           </nav>
         </div>
       `;
@@ -266,11 +266,13 @@
   }
   
   function renderCards(creds) {
-    creds.sort(sortArrayByProp('label'));
+    const sortedCreds = creds
+      .map((cred, _ndx) => ({ ...cred, _ndx }))
+      .sort(sortArrayByProp('label'));
     
     const letters = [];
     let credsListMarkup = '';
-    creds.forEach((cred, ndx) => {
+    sortedCreds.forEach((cred) => {
       const firstLetter = cred.label.toLowerCase().substring(0, 1);
       if (!letters.includes(firstLetter)) {
         letters.push(firstLetter);
@@ -280,7 +282,7 @@
         });
       }
       
-      credsListMarkup += templates.credCard(cred, ndx);
+      credsListMarkup += templates.credCard(cred);
     });
     cardsEl.innerHTML = credsListMarkup;
     

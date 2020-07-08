@@ -11,6 +11,10 @@ list of items.
 - [ ] On Add Custom Field, focus the input
 - [ ] Cancel load request if another request is made? Or batch, and do one at a time.
 - [ ] Make Add Creds inputs `monospace`
+- [ ] On a touch device, clicking on Credentials > Add, the menu doesn't close in the BG when the Dialog opens.
+- [x] Updating and deleting a credential is executing on the incorrect nodes
+  - It looks like it's related to the `credsNdx`. It may be incorrect after the
+  sort of all the items occurs.
 
 - Start form
   - [x] + Create Account (button)
