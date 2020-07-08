@@ -78,7 +78,7 @@
               ${window.templates.labeledInput({ label: 'Label', name: 'label', value: label, required: true })}
               ${window.templates.labeledInput({ label: 'Password', name: 'password', value: credPassword, required: true })}
               ${window.templates.labeledInput({ label: 'Website', name: 'website', value: website })}
-              ${window.templates.labeledInput({ label: 'Email', name: 'email', value: email })}
+              ${window.templates.labeledInput({ label: 'Email', name: 'email', type: 'email', value: email })}
               ${window.templates.labeledInput({ label: 'Username', name: 'username', value: credUsername })}
               ${Object.keys(customFields).map((prop) => {
                 return templates.customField({
