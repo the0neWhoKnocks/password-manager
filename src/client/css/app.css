@@ -247,6 +247,7 @@ custom-dialog button {
   width: var(--credCardWidth);
   margin-bottom: 3em;
   padding: 1em;
+  border: solid 1px var(--color__cardBorders);
   box-shadow: 0 0 10px 32px var(--color__credsBodyBG);
   position: sticky;
   top: 0;
