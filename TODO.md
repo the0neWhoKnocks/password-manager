@@ -8,7 +8,7 @@
   - https://stackoverflow.com/questions/11906198/node-js-write-http-response-to-stream
 - [ ] On Add of a cred, don't load all creds again, just append to the current
 list of items.
-- [ ] On Add Custom Field, focus the input
+- [x] On Add Custom Field, focus the input
 - [ ] Cancel load request if another request is made? Or batch, and do one at a time.
 - [x] Make Add Creds inputs `monospace`
 - [ ] On a touch device, clicking on Credentials > Add, the menu doesn't close in the BG when the Dialog opens.
