@@ -392,6 +392,9 @@ custom-dialog button {
 .creds-form__inputs > *:not(:last-child) {
   margin-bottom: 0.25em;
 }
+.creds-form__inputs input {
+  font-family: monospace;;
+}
 #addCustomCred {
   width: 100%;
   color: #000;
