@@ -1,6 +1,19 @@
 # Changelog
 ---
 
+## v1.2.0
+
+- [019c3cd](https://github.com/the0neWhoKnocks/password-manager/commit/019c3cd) feat: Make dropdown menus work on touch devices
+- [b80595e](https://github.com/the0neWhoKnocks/password-manager/commit/b80595e) feat: Ensure Filter input styling is the same everywhere
+- [615c0e9](https://github.com/the0neWhoKnocks/password-manager/commit/615c0e9) feat: On Add, Update, & Delete - Don't reload all credentials
+- [e12eaef](https://github.com/the0neWhoKnocks/password-manager/commit/e12eaef) feat: Focus input on Add Custom Field reveal
+- [19e3b04](https://github.com/the0neWhoKnocks/password-manager/commit/19e3b04) feat: Add Creds inputs are now monospace
+- [2280b2a](https://github.com/the0neWhoKnocks/password-manager/commit/2280b2a) fix: Updates & Deletions executing on the wrong node
+- [345df95](https://github.com/the0neWhoKnocks/password-manager/commit/345df95) Redesigned the Card
+- [73230c7](https://github.com/the0neWhoKnocks/password-manager/commit/73230c7) Added TODOs
+
+---
+
 ## v1.1.3
 
 - [323bac5](https://github.com/the0neWhoKnocks/password-manager/commit/323bac5) Docker cache now won't bust on non-dependencies changes
