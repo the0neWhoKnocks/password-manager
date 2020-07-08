@@ -109,27 +109,31 @@
       `;
     },
     view: () => `
-      <style id="filterStyles"></style>
-      <nav class="credentials__top-nav">
-        <custom-drop-down label="Credentials">
-          <button slot="ddItems" type="button" id="addCreds">Add</button>
-          <button slot="ddItems" type="button" id="exportCreds">Export</button>
-          <button slot="ddItems" type="button" id="importCreds">Import</button>
-        </custom-drop-down>
-        <custom-drop-down label="User">
-          <button slot="ddItems" type="button" id="deleteUser">Delete Account</button>
-          <button slot="ddItems" type="button" id="updateUser">Update Account</button>
-          <button slot="ddItems" type="button" id="logout">Log Out</button>
-        </custom-drop-down>
-      </nav>
-      <div class="credentials__body is--loading">
-        <div class="spinner"></div>
-        <div class="no-creds-msg">
-          No credentials present. Go to Credentials &gt; Add
+      <div class="credentials">
+        <style id="filterStyles"></style>
+        <nav class="credentials__top-nav">
+          <custom-drop-down label="Credentials">
+            <button slot="ddItems" type="button" id="addCreds">Add</button>
+            <button slot="ddItems" type="button" id="exportCreds">Export</button>
+            <button slot="ddItems" type="button" id="importCreds">Import</button>
+          </custom-drop-down>
+          <custom-drop-down label="User">
+            <button slot="ddItems" type="button" id="deleteUser">Delete Account</button>
+            <button slot="ddItems" type="button" id="updateUser">Update Account</button>
+            <button slot="ddItems" type="button" id="logout">Log Out</button>
+          </custom-drop-down>
+        </nav>
+        <div class="credentials__body">
+          <div class="no-creds-msg">
+            No credentials present. Go to Credentials &gt; Add
+          </div>
+          <div class="credentials__list">
+            <input class="credentials__filter-input" type="text" placeholder="Filter by Label" />
+            <div class="credentials__cards"></div>
+          </div>
         </div>
-        <div class="credentials__list">
-          <input class="credentials__filter-input" type="text" placeholder="Filter by Label" />
-          <div class="credentials__cards"></div>
+        <div class="load-progress-indicator">
+          <div class="spinner"></div>
         </div>
       </div>
     `,
@@ -165,6 +169,14 @@
         el.classList.remove(MODIFIER__COPIED);
       }, animDuration);
     }
+  }
+  
+  const MODIFIER__LOADING = 'is--loading';
+  function showProgressIndicator() {
+    credentialsEl.classList.add(MODIFIER__LOADING);
+  }
+  function hideProgressIndicator() {
+    credentialsEl.classList.remove(MODIFIER__LOADING);
   }
   
   function deleteConfirmationDialog({
@@ -260,7 +272,7 @@
           onSubmit: ({ dialog, form }) => {
             window.utils.postData(form.action, form)
               .then(() => {
-                delete loadedCreds[ndx];
+                loadedCreds.splice(ndx, 1);
                 renderCards(loadedCreds);
                 dialog.close();
               })
@@ -272,60 +284,61 @@
   }
   
   function renderCards(creds) {
-    const sortedCreds = creds
-      .map((cred, _ndx) => ({ ...cred, _ndx }))
-      .sort(sortArrayByProp('label'));
+    const MODIFIER__NO_CREDS = 'has--no-credentials';
+    cardsEl.innerHTML = '';
     
-    const letters = [];
-    let credsListMarkup = '';
-    sortedCreds.forEach((cred) => {
-      const firstLetter = cred.label.toLowerCase().substring(0, 1);
-      if (!letters.includes(firstLetter)) {
-        letters.push(firstLetter);
-          credsListMarkup += window.templates.hrWithText({
-          className: 'credentials__letter-sep',
-          label: firstLetter.toUpperCase(),
-        });
-      }
+    if (!creds.length) credsBody.classList.add(MODIFIER__NO_CREDS);
+    else {
+      credsBody.classList.remove(MODIFIER__NO_CREDS);
       
-      credsListMarkup += templates.credCard(cred);
-    });
-    cardsEl.innerHTML = credsListMarkup;
-    
-    const filterInput = credsList.querySelector('.credentials__filter-input');
-    
-    cardsEl.removeEventListener('click', handleCredCardClick);
-    cardsEl.addEventListener('click', handleCredCardClick);
-    
-    filterInput.addEventListener('input', (ev) => {
-      const filter = ev.currentTarget.value;
-      const filterRule = (filter !== '')
-        ? `
-          .credentials__letter-sep,
-          .credentials-card:not([data-card-label*="${strForDataAttr(filter)}"]) {
-            display: none;
-          }
-        `
-        : '';
-      filterStyles.textContent = filterRule;
-    });
+      const sortedCreds = creds
+        .map((cred, _ndx) => ({ ...cred, _ndx }))
+        .sort(sortArrayByProp('label'));
+      
+      const letters = [];
+      let credsListMarkup = '';
+      sortedCreds.forEach((cred) => {
+        const firstLetter = cred.label.toLowerCase().substring(0, 1);
+        if (!letters.includes(firstLetter)) {
+          letters.push(firstLetter);
+            credsListMarkup += window.templates.hrWithText({
+            className: 'credentials__letter-sep',
+            label: firstLetter.toUpperCase(),
+          });
+        }
+        
+        credsListMarkup += templates.credCard(cred);
+      });
+      cardsEl.innerHTML = credsListMarkup;
+      
+      const filterInput = credsList.querySelector('.credentials__filter-input');
+      
+      cardsEl.removeEventListener('click', handleCredCardClick);
+      cardsEl.addEventListener('click', handleCredCardClick);
+      
+      filterInput.addEventListener('input', (ev) => {
+        const filter = ev.currentTarget.value;
+        const filterRule = (filter !== '')
+          ? `
+            .credentials__letter-sep,
+            .credentials-card:not([data-card-label*="${strForDataAttr(filter)}"]) {
+              display: none;
+            }
+          `
+          : '';
+        filterStyles.textContent = filterRule;
+      });
+    }
   }
   
   function loadCredentials() {
+    showProgressIndicator();
+    
     window.utils.postData('/api/user/creds/load', { ...window.utils.storage.get('userData') })
       .then((creds) => {
-        const MODIFIER__NO_CREDS = 'has--no-credentials';
-        
-        credsBody.classList.remove('is--loading');
-        cardsEl.innerHTML = '';
-        
+        hideProgressIndicator();
         loadedCreds = creds;
-        
-        if (!creds.length) credsBody.classList.add(MODIFIER__NO_CREDS);
-        else {
-          credsBody.classList.remove(MODIFIER__NO_CREDS);
-          renderCards(creds);
-        }
+        renderCards(creds);
       })
       .catch((err) => {
         const error = (err.error) ? err.error : err.stack;
@@ -397,17 +410,15 @@
   }
   
   window.showCredentials = function showCredentials() {
-    credentialsEl = document.createElement('div');
-    credentialsEl.classList.add('credentials');
-    credentialsEl.innerHTML = templates.view();
-    document.body.appendChild(credentialsEl);
+    document.body.insertAdjacentHTML('beforeend', templates.view());
     
-    logoutBtn = document.querySelector('#logout');
-    addCredsBtn = document.querySelector('#addCreds');
-    exportCredsBtn = document.querySelector('#exportCreds');
-    importCredsBtn = document.querySelector('#importCreds');
-    deleteUserBtn = document.querySelector('#deleteUser');
-    updateUserBtn = document.querySelector('#updateUser');
+    credentialsEl = document.querySelector('.credentials');
+    logoutBtn = credentialsEl.querySelector('#logout');
+    addCredsBtn = credentialsEl.querySelector('#addCreds');
+    exportCredsBtn = credentialsEl.querySelector('#exportCreds');
+    importCredsBtn = credentialsEl.querySelector('#importCreds');
+    deleteUserBtn = credentialsEl.querySelector('#deleteUser');
+    updateUserBtn = credentialsEl.querySelector('#updateUser');
     filterStyles = credentialsEl.querySelector('#filterStyles');
     credsBody = credentialsEl.querySelector('.credentials__body');
     credsList = credentialsEl.querySelector('.credentials__list');
@@ -442,11 +453,16 @@
     importCredsBtn.addEventListener('click', () => {
       const { username, password } = window.utils.storage.get('userData');
       
-      window.utils.loadFile().then((data) => {
+      window.utils.loadFile({
+        onFileAdd: () => {
+          showProgressIndicator();
+        },
+      }).then((data) => {
         const payload = {
           creds: JSON.parse(data).creds,
           user: { username, password },
         };
+        
         window.utils.postData('/api/user/creds/import', payload)
           .then(() => {
             loadCredentials();

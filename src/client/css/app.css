@@ -13,7 +13,7 @@
   --credCardWidth: 450px;
   --copiedMsgDuration: 2000ms;
   --color__cardBorders: #999;
-  --color__credsBodyBG: #eee;
+  --color__credsBodyBG: 238, 238, 238;
 }
 
 *, *::before, *::after {
@@ -214,18 +214,37 @@ custom-dialog button {
   transform: translateX(-50%);
 }
 
+.load-progress-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 300ms;
+  pointer-events: none;
+}
+.load-progress-indicator::before {
+  content: '';
+  width: 100%;
+  height: 100%;
+  background-color: rgba(var(--color__credsBodyBG), 0.8);
+  display: block;
+}
+.load-progress-indicator .spinner {
+  top: 40%;
+}
+.credentials.is--loading .load-progress-indicator {
+  opacity: 1;
+  pointer-events: all;
+}
+
 .credentials__body {
   height: 100%;
   overflow: hidden;
-  background: var(--color__credsBodyBG);
+  background-color: rgb(var(--color__credsBodyBG));
   position: relative;
-}
-.credentials__body .spinner {
-  display: none;
-}
-.credentials__body.is--loading .spinner {
-  display: block;
-  top: 40%;
 }
 .credentials__body.has--no-credentials .no-creds-msg {
   display: block;
@@ -248,7 +267,7 @@ custom-dialog button {
   margin-bottom: 3em;
   padding: 1em;
   border: solid 1px var(--color__cardBorders);
-  box-shadow: 0 0 10px 32px var(--color__credsBodyBG);
+  box-shadow: 0 0 10px 32px rgb(var(--color__credsBodyBG));
   position: sticky;
   top: 0;
   z-index: 1;
@@ -264,7 +283,7 @@ custom-dialog button {
   margin-top: 0;
 }
 .credentials__letter-sep > * {
-  background: var(--color__credsBodyBG);
+  background-color: rgb(var(--color__credsBodyBG));
 }
 
 .credentials-card {
@@ -351,7 +370,7 @@ custom-dialog button {
 .credentials-card__clipboard-icon {
   padding: 0 0.25em;
   border-left: dashed 1px var(--color__cardBorders);
-  background-color: var(--color__credsBodyBG);
+  background-color: rgb(var(--color__credsBodyBG));
   display: flex;
   align-items: center;
 }
