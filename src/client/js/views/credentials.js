@@ -360,6 +360,7 @@
     addCustomCredBtn.addEventListener('click', () => {
       addCustomCredBtn.classList.add(MODIFIER__HIDDEN);
       inputCreator.classList.remove(MODIFIER__HIDDEN);
+      inputCreator.querySelector('input').focus();
     });
     cancelBtn.addEventListener('click', () => {
       addCustomCredBtn.classList.remove(MODIFIER__HIDDEN);
