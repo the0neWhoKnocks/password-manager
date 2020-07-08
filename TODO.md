@@ -6,6 +6,9 @@
   percentage of items that have completed
   - https://stackoverflow.com/questions/46145738/stream-response-into-http-response
   - https://stackoverflow.com/questions/11906198/node-js-write-http-response-to-stream
+- [ ] Maybe store loaded data in `sessionStorage` so that reloads are
+immediate, then make a background request to ensure that data is up to
+date. 
 - [x] On Add, Update, or Deletion of a cred, don't load all creds again, just
 update the current data & re-render.
 - [x] On Add Custom Field, focus the input
@@ -15,7 +18,7 @@ update the current data & re-render.
 - [x] Updating and deleting a credential is executing on the incorrect nodes
   - It looks like it's related to the `credsNdx`. It may be incorrect after the
   sort of all the items occurs.
-- [ ] Change to Email input in Add Creds
+- [x] Change to Email input in Add Creds
 
 - Start form
   - [x] + Create Account (button)
