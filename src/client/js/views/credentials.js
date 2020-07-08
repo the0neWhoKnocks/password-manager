@@ -5,6 +5,11 @@
     return (a[prop].toLowerCase() > b[prop].toLowerCase()) ? 1 : subCheck;
   };
   const strForDataAttr = (str) => str.toLowerCase().replace(/(\s|_)/g, '-');
+  const sanitizeStringForAttr = (str) => str
+    .replace(/&/g, "&amp;")
+    .replace(/>/g, "&gt;")
+    .replace(/</g, "&lt;")
+    .replace(/"/g, "&quot;");
   
   const templates = {
     credCard: ({ _ndx, label, ...creds }) => {
@@ -12,7 +17,7 @@
       const listItem = (obj, prop) => `
         <button
           class="credentials-card__list-item"
-          title="Click to copy value"
+          title="${sanitizeStringForAttr(`Click to copy "${prop}" value from "${label}"`)}"
         >
           <div class="credentials-card__list-item-column">
             <label>${prop}</label>
