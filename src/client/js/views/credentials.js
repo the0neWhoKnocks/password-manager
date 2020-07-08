@@ -255,7 +255,8 @@
           onSubmit: ({ dialog, form }) => {
             window.utils.postData(form.action, form)
               .then(() => {
-                loadCredentials();
+                delete loadedCreds[ndx];
+                renderCards(loadedCreds);
                 dialog.close();
               })
               .catch(({ error }) => { alert(error); });
@@ -350,10 +351,17 @@
     credsForm.addEventListener('submit', (ev) => {
       ev.preventDefault();
       
-      window.utils.postData(credsForm.action, credsForm)
-        .then(() => {
+      const formData = window.utils.serializeForm(credsForm);
+      
+      window.utils.postData(credsForm.action, formData)
+        .then((credsData) => {
+          const { credsNdx } = formData;
+          
+          if (credsNdx !== undefined) loadedCreds[credsNdx] = credsData;
+          else loadedCreds.push(credsData);
+          
+          renderCards(loadedCreds);
           credentialsDialog.close();
-          loadCredentials();
         })
         .catch(({ error }) => { alert(error); });
     });
@@ -505,7 +513,7 @@
         
         window.utils.postData(form.action, form)
           .then(({ username, password }) => {
-            window.utils.storage.set({ userData: { username, password } })
+            window.utils.storage.set({ userData: { username, password } });
             loadCredentials();
             dialog.close();
           })

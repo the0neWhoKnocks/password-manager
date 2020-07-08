@@ -348,7 +348,7 @@ function modifyCreds({ req, resp }) {
       
       writeFile(filePath, JSON.stringify(usersCreds, null, 2), 'utf8', (err) => {
         if (err) returnErrorResp({ label: `${errPrefix} Creds write failed`, resp })(err);
-        else returnResp({ prefix, label: 'Creds', resp });
+        else returnResp({ data: parsedCreds, prefix, label: 'Creds', resp });
       });
     })
     .catch(returnErrorResp({ label: `Modify Creds request parse failed`, resp }));
