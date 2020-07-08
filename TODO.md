@@ -15,6 +15,7 @@ update the current data & re-render.
 - [x] Updating and deleting a credential is executing on the incorrect nodes
   - It looks like it's related to the `credsNdx`. It may be incorrect after the
   sort of all the items occurs.
+- [ ] Change to Email input in Add Creds
 
 - Start form
   - [x] + Create Account (button)
