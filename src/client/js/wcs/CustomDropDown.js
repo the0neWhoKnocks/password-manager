@@ -24,31 +24,36 @@
       position: relative;
       z-index: 0;
     }
-    .drop-down:hover > .drop-down__label {
+    .drop-down__btn:focus,
+    .drop-down:hover > .drop-down__btn {
       color: #fff;
       background: #333;
     }
-    .drop-down:hover > .drop-down__items {
-      min-width: 100%;
+    .drop-down.open > .drop-down__items {
       display: block;
     }
     
-    .drop-down__label {
+    .drop-down__btn {
       font-weight: bold;
       line-height: 1em;
       padding: 0.5em;
       padding-right: 40px;
-      display: block;
+      border: none;
+      background: transparent;
+      display: flex;
       position: relative;
+    }
+    .drop-down__btn > * {
       user-select: none;
       pointer-events: none;
     }
-    .drop-down__label > .svg-icon {
+    .drop-down__btn > .svg-icon {
       position: absolute;
       right: 10px;
     }
     
     .drop-down__items {
+      min-width: 100%;
       background-image: linear-gradient(180deg, #949494 0, #dadada 0.5em);
       box-shadow: 0 6px 0.5em 0.1em rgba(0, 0, 0, 0.4);
       display: none;
@@ -69,6 +74,7 @@
       cursor: pointer;
       background: transparent;
     }
+    slot[name="ddItems"]::slotted(button:focus),
     slot[name="ddItems"]::slotted(button:hover) {
       color: #fff;
       background: #333;
@@ -105,17 +111,52 @@
         </svg>
         
         <div class="drop-down">
-          <span class="drop-down__label">
+          <button class="drop-down__btn" type="button">
             ${this.label}
             <svg class="svg-icon">
               <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#ui-icon_angle-down"></use>
             </svg>
-          </span>
+          </button>
           <nav class="drop-down__items">
             <slot name="ddItems"></slot>
           </nav>
         </div>
       `;
+      
+      this.els = {
+        btn: shadowRoot.querySelector('.drop-down__btn'),
+        dd: shadowRoot.querySelector('.drop-down'),
+        ddItems: shadowRoot.querySelector('.drop-down__items'),
+      };
+      
+      this.close = this.close.bind(this);
+      this.closeCheck = this.closeCheck.bind(this);
+      this.handleToggleClick = this.handleToggleClick.bind(this);
+    }
+    
+    connectedCallback() {
+      this.els.btn.addEventListener('click', this.handleToggleClick);
+    }
+    
+    close() {
+      this.els.dd.classList.remove('open');
+      this.els.ddItems.removeEventListener('click', this.close);
+      window.removeEventListener('click', this.closeCheck);
+      document.body.removeEventListener('focusin', this.closeCheck);
+    }
+    
+    closeCheck(ev) {
+      if (!this.contains(ev.target)) this.close();
+    }
+    
+    handleToggleClick() {
+      if (!this.els.dd.classList.contains('open')) {
+        this.els.dd.classList.add('open');
+        this.els.ddItems.addEventListener('click', this.close);
+        window.addEventListener('click', this.closeCheck);
+        document.body.addEventListener('focusin', this.closeCheck);
+      }
+      else this.close();
     }
   }
 
