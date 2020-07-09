@@ -336,25 +336,26 @@
   function loadCredentials() {
     showProgressIndicator();
     
-    let currCount = 0;
     let totalCount;
     
     const xhr = new XMLHttpRequest();
     xhr.addEventListener('progress', () => {
-      const data = JSON.parse(xhr.response.split('\n').pop());
+      const data = xhr.response.split('\n');
+      const lastLine = JSON.parse(data.pop());
       
-      if (totalCount === undefined) totalCount = data.recordsCount;
+      if (totalCount === undefined) totalCount = lastLine.recordsCount;
       else {
-        currCount += 1;
+        const decryptedCount = lastLine.decryptedCount || totalCount;
         requestAnimationFrame(() => {
-          progressInfo.innerText = `Decrypting ${Math.round((currCount/totalCount) * 100)}%`;    
-          // renderCards(loadedCreds);
+          progressInfo.innerText = `Decrypting ${Math.round((decryptedCount/totalCount) * 100)}%`;    
         });
       }
     });
     xhr.addEventListener('load', () => {
-      const loadedCreds = xhr.response.split('\n').map(c => JSON.parse(c));
-      loadedCreds.shift();
+      const data = xhr.response.split('\n');
+      const lastLine = JSON.parse(data.pop());
+      const { creds } = lastLine;
+      loadedCreds = creds;
       
       renderCards(loadedCreds);
       hideProgressIndicator();

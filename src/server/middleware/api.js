@@ -403,6 +403,7 @@ function loadCreds({ req, resp }) {
       const encryptedUsername = (await encrypt(username)).value;
       const filePath = getUsersCredentialsPath(encryptedUsername);
       const loadedCreds = await loadUsersCredentials(filePath);
+      const decryptedItems = [];
       
       resp.writeHead(200, {
         'Content-Type': 'text/plain; charset=utf-8',
@@ -411,19 +412,33 @@ function loadCreds({ req, resp }) {
       });
       
       jsonData.pipe(resp);
-      jsonData.on('end', (data) => {
-        resp.end(JSON.stringify(data));
-      });
+      jsonData.on('end', () => { resp.end(); });
       
       jsonData.push(JSON.stringify({
         recordsCount: loadedCreds.length,
       }));
-
+      
+      const pending = [];
+      let decryptedCount = 0;
       for (let i=0; i<loadedCreds.length; i++) {
-        const creds = JSON.parse(await decrypt(loadedCreds[i], password));
-        jsonData.push(`\n${JSON.stringify(creds)}`);
+        // NOTE - Using Promises instead of async/await was 4 times faster.
+        pending.push(new Promise((resolve) => {
+          const ndx = i;
+          decrypt(loadedCreds[ndx], password).then((decrypted) => {
+            decryptedCount += 1;
+            jsonData.push(`\n${JSON.stringify({ decryptedCount })}`);
+            decryptedItems[ndx] = JSON.parse(decrypted);
+            resolve();
+          });
+        }));
       }
-      jsonData.push(null);
+      
+      Promise.all(pending).then(() => {
+        jsonData.push(`\n${JSON.stringify({
+          creds: decryptedItems,
+        })}`);
+        jsonData.push(null);
+      });
     })
     .catch(returnErrorResp({ label: 'Add Creds request parse failed', resp }));
 }
