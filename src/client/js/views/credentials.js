@@ -133,6 +133,7 @@
           </div>
         </div>
         <div class="load-progress-indicator">
+          <div class="load-progress-indicator__info"></div>
           <div class="spinner"></div>
         </div>
       </div>
@@ -151,6 +152,7 @@
   let loadedCreds;
   let cardsEl;
   let filterStyles;
+  let progressInfo;
   
   function addValueToClipboard(el) {
     const temp = document.createElement('textarea');
@@ -334,16 +336,38 @@
   function loadCredentials() {
     showProgressIndicator();
     
-    window.utils.postData('/api/user/creds/load', { ...window.utils.storage.get('userData') })
-      .then((creds) => {
-        hideProgressIndicator();
-        loadedCreds = creds;
-        renderCards(creds);
-      })
-      .catch((err) => {
-        const error = (err.error) ? err.error : err.stack;
-        alert(error);
-      });
+    let currCount = 0;
+    let totalCount;
+    
+    const xhr = new XMLHttpRequest();
+    xhr.addEventListener('progress', () => {
+      const data = JSON.parse(xhr.response.split('\n').pop());
+      
+      if (totalCount === undefined) totalCount = data.recordsCount;
+      else {
+        currCount += 1;
+        requestAnimationFrame(() => {
+          progressInfo.innerText = `Decrypting ${Math.round((currCount/totalCount) * 100)}%`;    
+          // renderCards(loadedCreds);
+        });
+      }
+    });
+    xhr.addEventListener('load', () => {
+      const loadedCreds = xhr.response.split('\n').map(c => JSON.parse(c));
+      loadedCreds.shift();
+      
+      renderCards(loadedCreds);
+      hideProgressIndicator();
+    });
+    xhr.addEventListener('error', () => {
+      alert(`${xhr.response}`);
+    });
+    xhr.responseType = 'text';
+    xhr.open('POST', '/api/user/creds/load');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify({
+      ...window.utils.storage.get('userData'),
+    }));
   }
   
   function createAddOrEditCredsDialog(currentData, ndx) {
@@ -420,6 +444,7 @@
     deleteUserBtn = credentialsEl.querySelector('#deleteUser');
     updateUserBtn = credentialsEl.querySelector('#updateUser');
     filterStyles = credentialsEl.querySelector('#filterStyles');
+    progressInfo = credentialsEl.querySelector('.load-progress-indicator__info');
     credsBody = credentialsEl.querySelector('.credentials__body');
     credsList = credentialsEl.querySelector('.credentials__list');
     cardsEl = credsList.querySelector('.credentials__cards');

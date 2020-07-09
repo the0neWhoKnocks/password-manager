@@ -41,20 +41,21 @@ const encrypt = (value, password) => new Promise((resolve) => {
     iv = crypto.randomBytes(16);
   }
   
-  const key = crypto.scryptSync(pass, salt, 24);
-  const cipher = crypto.createCipheriv('aes-192-cbc', key, iv);
-  const encrypted = Buffer.concat([
-    cipher.update((typeof value === 'object') ? JSON.stringify(value) : value),
-    cipher.final()
-  ]);
-  
-  const ivHex = iv.toString('hex');
-  const valueHex = encrypted.toString('hex');
-  
-  resolve({
-    combined: `${ivHex}:${valueHex}`,
-    iv: ivHex,
-    value: valueHex,
+  crypto.scrypt(pass, salt, 24, (err, key) => {
+    const cipher = crypto.createCipheriv('aes-192-cbc', key, iv);
+    const encrypted = Buffer.concat([
+      cipher.update((typeof value === 'object') ? JSON.stringify(value) : value),
+      cipher.final()
+    ]);
+    
+    const ivHex = iv.toString('hex');
+    const valueHex = encrypted.toString('hex');
+    
+    resolve({
+      combined: `${ivHex}:${valueHex}`,
+      iv: ivHex,
+      value: valueHex,
+    });
   });
 });
 
@@ -69,22 +70,23 @@ const decrypt = (value, password) => new Promise((resolve, reject) => {
     _password = password;
   }
   
-  const key = crypto.scryptSync(_password, salt, 24);
-  const iv = Buffer.from(ivHex, 'hex');
-  const encrypted = Buffer.from(_value, 'hex');
-  const decipher = crypto.createDecipheriv('aes-192-cbc', key, iv);
-  
-  // if someone tries to decrypt data with the incorrect password, this will
-  // fail, which is what we want.
-  try {
-    const decrypted = Buffer.concat([
-      decipher.update(encrypted),
-      decipher.final()
-    ]);
+  crypto.scrypt(_password, salt, 24, (err, key) => {
+    const iv = Buffer.from(ivHex, 'hex');
+    const encrypted = Buffer.from(_value, 'hex');
+    const decipher = crypto.createDecipheriv('aes-192-cbc', key, iv);
+    
+    // if someone tries to decrypt data with the incorrect password, this will
+    // fail, which is what we want.
+    try {
+      const decrypted = Buffer.concat([
+        decipher.update(encrypted),
+        decipher.final()
+      ]);
 
-    resolve(decrypted.toString());
-  }
-  catch (err) { reject(err); }
+      resolve(decrypted.toString());
+    }
+    catch (err) { reject(err); }
+  });
 });
 
 const loadUsers = () => new Promise((resolve, reject) => {
@@ -396,20 +398,32 @@ function deleteCreds({ req, resp }) {
 function loadCreds({ req, resp }) {
   parseReq(req)
     .then(async ({ username, password }) => {
+      const { Readable } = require('stream');
+      const jsonData = new Readable({ read() {} });
       const encryptedUsername = (await encrypt(username)).value;
       const filePath = getUsersCredentialsPath(encryptedUsername);
-      const usersCreds = (await loadUsersCredentials(filePath)).map(async (creds) => {
-        return JSON.parse(await decrypt(creds, password));
+      const loadedCreds = await loadUsersCredentials(filePath);
+      
+      resp.writeHead(200, {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Transfer-Encoding': 'chunked',
+        'X-Content-Type-Options': 'nosniff',
       });
       
-      Promise.all(usersCreds).then((data) => {
-        returnResp({
-          prefix: 'LOADED',
-          label: 'Creds',
-          data,
-          resp,
-        });
+      jsonData.pipe(resp);
+      jsonData.on('end', (data) => {
+        resp.end(JSON.stringify(data));
       });
+      
+      jsonData.push(JSON.stringify({
+        recordsCount: loadedCreds.length,
+      }));
+
+      for (let i=0; i<loadedCreds.length; i++) {
+        const creds = JSON.parse(await decrypt(loadedCreds[i], password));
+        jsonData.push(`\n${JSON.stringify(creds)}`);
+      }
+      jsonData.push(null);
     })
     .catch(returnErrorResp({ label: 'Add Creds request parse failed', resp }));
 }
