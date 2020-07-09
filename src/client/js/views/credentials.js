@@ -338,9 +338,8 @@
     
     let totalCount;
     
-    const xhr = new XMLHttpRequest();
-    xhr.addEventListener('progress', () => {
-      const data = xhr.response.split('\n');
+    const onProgress = (resp) => {
+      const data = resp.split('\n');
       const lastLine = JSON.parse(data.pop());
       
       if (totalCount === undefined) totalCount = lastLine.recordsCount;
@@ -350,25 +349,23 @@
           progressInfo.innerText = `Decrypting ${Math.round((decryptedCount/totalCount) * 100)}%`;    
         });
       }
-    });
-    xhr.addEventListener('load', () => {
-      const data = xhr.response.split('\n');
-      const lastLine = JSON.parse(data.pop());
-      const { creds } = lastLine;
-      loadedCreds = creds;
-      
-      renderCards(loadedCreds);
-      hideProgressIndicator();
-    });
-    xhr.addEventListener('error', () => {
-      alert(`${xhr.response}`);
-    });
-    xhr.responseType = 'text';
-    xhr.open('POST', '/api/user/creds/load');
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.send(JSON.stringify({
-      ...window.utils.storage.get('userData'),
-    }));
+    };
+    
+    window.utils.postData(
+      '/api/user/creds/load',
+      window.utils.storage.get('userData'),
+      { onProgress }
+    )
+      .then((resp) => {
+        const data = resp.split('\n');
+        const lastLine = JSON.parse(data.pop());
+        const { creds } = lastLine;
+        loadedCreds = creds;
+        
+        renderCards(loadedCreds);
+        hideProgressIndicator();
+      })
+      .catch((err) => { alert(err); });
   }
   
   function createAddOrEditCredsDialog(currentData, ndx) {
