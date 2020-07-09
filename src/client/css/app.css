@@ -53,8 +53,8 @@ form button:disabled {
 
 .spinner {
   content: '';
-  width: 2em;
-  height: 2em;
+  width: 12em;
+  height: 12em;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -70,6 +70,7 @@ form button:disabled {
   background: transparent;
   display: block;
   animation: loaderSpin 350ms infinite linear;
+  opacity: 0.25;
 }
 
 .hr-with-text {
@@ -234,6 +235,20 @@ custom-dialog button {
 }
 .load-progress-indicator .spinner {
   top: 40%;
+}
+.load-progress-indicator__info {
+  width: 12em;
+  height: 12em;
+  font-family: monospace;
+  border-radius: 100%;
+  background: rgb(var(--color__credsBodyBG));
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .credentials.is--loading .load-progress-indicator {
   opacity: 1;

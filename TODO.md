@@ -1,7 +1,7 @@
 # TODO
 
 - [x] Labels & values don't always fit in Card
-- [ ] Maybe stream load?
+- [x] Maybe stream load?
   - Have some sort of "Decrypting Data" message on load. Possibly return the
   percentage of items that have completed
   - https://stackoverflow.com/questions/46145738/stream-response-into-http-response
@@ -13,6 +13,7 @@ date.
 update the current data & re-render.
 - [x] On Add Custom Field, focus the input
 - [ ] Cancel load request if another request is made? Or batch, and do one at a time.
+  - `xhr.abort();`
 - [x] Make Add Creds inputs `monospace`
 - [x] On a touch device, clicking on Credentials > Add, the menu doesn't close in the BG when the Dialog opens.
 - [x] Updating and deleting a credential is executing on the incorrect nodes
