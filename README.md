@@ -1,4 +1,6 @@
-# Password Manager
+<h1>
+  <img src="./src/client/imgs/icons/android-chrome-192x192.png" height="25" alt="logo"> Password Manager
+</h1>
 
 ![GitHub](https://img.shields.io/github/license/the0neWhoKnocks/password-manager?color=%237ea01a&style=for-the-badge)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/the0neWhoKnocks/password-manager?sort=semver&style=for-the-badge)
