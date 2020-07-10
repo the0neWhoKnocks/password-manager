@@ -1,6 +1,22 @@
 # Changelog
 ---
 
+## v1.3.0
+
+- [7f316b3](https://github.com/the0neWhoKnocks/password-manager/commit/7f316b3) feat: Animate Import/Load progress indicator
+- [fd9b9d4](https://github.com/the0neWhoKnocks/password-manager/commit/fd9b9d4) chore: Normalize how stream progress is rendered
+- [f790848](https://github.com/the0neWhoKnocks/password-manager/commit/f790848) feat: Stream progress on Import like Load is doing
+- [042f744](https://github.com/the0neWhoKnocks/password-manager/commit/042f744) feat: Added ability to enable or disable Server logging via URL param
+- [ad6de73](https://github.com/the0neWhoKnocks/password-manager/commit/ad6de73) feat: Allow for tracking progress when using `postData`
+- [911bd06](https://github.com/the0neWhoKnocks/password-manager/commit/911bd06) chore: Renamed `request` util to `postData`
+- [0fa392c](https://github.com/the0neWhoKnocks/password-manager/commit/0fa392c) feat: Sped up decryption on load
+- [d0a74af](https://github.com/the0neWhoKnocks/password-manager/commit/d0a74af) feat: Streaming data on load
+- [e272f58](https://github.com/the0neWhoKnocks/password-manager/commit/e272f58) fix: Last deletion not resting view & import load indicator
+- [4525e20](https://github.com/the0neWhoKnocks/password-manager/commit/4525e20) feat: Create a more accessible title for copyable Card values
+- [e8ddf8e](https://github.com/the0neWhoKnocks/password-manager/commit/e8ddf8e) feat: Change input to type `email` in Add Creds
+
+---
+
 ## v1.2.0
 
 - [019c3cd](https://github.com/the0neWhoKnocks/password-manager/commit/019c3cd) feat: Make dropdown menus work on touch devices
