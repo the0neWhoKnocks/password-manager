@@ -2,6 +2,7 @@ const { existsSync } = require('fs');
 const glob = require('glob');
 const mkdirp = require('mkdirp');
 const returnErrorResp = require('../utils/returnErrorResp');
+const log = require('../utils/logger').logger('middleware:view');
 const {
   CONFIG_PATH,
   DATA_PATH,
@@ -25,6 +26,7 @@ const getJSFiles = () => new Promise((resolve, reject) => {
       if (err) reject(err);
       else {
         jsFiles = filePaths.map(fp => fp.split(PUBLIC_JS).join('/js'));
+        log('[LOAD] JS files', `\n - ${jsFiles.join('\n - ')}`);
         resolve(jsFiles);
       }
     });
