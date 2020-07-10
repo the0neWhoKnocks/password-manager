@@ -403,15 +403,15 @@ function importCreds({ req, resp }) {
           }));
           
           const pending = [];
-          let encryptedCount = 0;
+          let processedCount = 0;
           for (let i=0; i<creds.length; i++) {
             pending.push(
               new Promise((resolve) => {
                 const ndx = i;
                 encrypt(creds[ndx], password)
                   .then(({ combined }) => {
-                    encryptedCount += 1;
-                    stream.push(`\n${JSON.stringify({ encryptedCount })}`);
+                    processedCount += 1;
+                    stream.push(`\n${JSON.stringify({ processedCount })}`);
                     encryptedCreds[ndx] = combined;
                     log(`  [ENCRYPTED] ${ndx}`);
                     resolve();
@@ -485,14 +485,14 @@ function loadCreds({ req, resp }) {
           }));
           
           const pending = [];
-          let decryptedCount = 0;
+          let processedCount = 0;
           for (let i=0; i<loadedCreds.length; i++) {
             // NOTE - Using Promises instead of async/await was 4 times faster.
             pending.push(new Promise((resolve) => {
               const ndx = i;
               decrypt(loadedCreds[ndx], password).then((decrypted) => {
-                decryptedCount += 1;
-                stream.push(`\n${JSON.stringify({ decryptedCount })}`);
+                processedCount += 1;
+                stream.push(`\n${JSON.stringify({ processedCount })}`);
                 decryptedItems[ndx] = JSON.parse(decrypted);
                 log(`  [DECRYPTED] ${ndx}`);
                 resolve();

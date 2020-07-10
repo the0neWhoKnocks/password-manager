@@ -15,6 +15,21 @@
     const lastLine = JSON.parse(data.pop());
     return { data, lastLine };
   };
+  const renderStreamProgress = (prefix) => {
+    let totalCount;
+    
+    return (resp) => {
+      const { lastLine } = readStreamData(resp);
+      
+      if (totalCount === undefined) totalCount = lastLine.recordsCount;
+      else {
+        const processedCount = lastLine.processedCount || totalCount;
+        requestAnimationFrame(() => {
+          progressInfo.innerText = `${prefix} ${Math.round((processedCount/totalCount) * 100)}%`;    
+        });
+      }
+    };
+  };
   
   const templates = {
     credCard: ({ _ndx, label, ...creds }) => {
@@ -341,24 +356,10 @@
   function loadCredentials() {
     showProgressIndicator();
     
-    let totalCount;
-    
-    const onProgress = (resp) => {
-      const { lastLine } = readStreamData(resp);
-      
-      if (totalCount === undefined) totalCount = lastLine.recordsCount;
-      else {
-        const decryptedCount = lastLine.decryptedCount || totalCount;
-        requestAnimationFrame(() => {
-          progressInfo.innerText = `Decrypting ${Math.round((decryptedCount/totalCount) * 100)}%`;    
-        });
-      }
-    };
-    
     window.utils.postData(
       '/api/user/creds/load',
       window.utils.storage.get('userData'),
-      { onProgress }
+      { onProgress: renderStreamProgress('Decrypting') }
     )
       .then((resp) => {
         const { lastLine: { creds } } = readStreamData(resp);
@@ -487,24 +488,11 @@
           creds: JSON.parse(data).creds,
           user: { username, password },
         };
-        let totalCount;
-        
-        const onProgress = (resp) => {
-          const { lastLine } = readStreamData(resp);
-          
-          if (totalCount === undefined) totalCount = lastLine.recordsCount;
-          else {
-            const encryptedCount = lastLine.encryptedCount || totalCount;
-            requestAnimationFrame(() => {
-              progressInfo.innerText = `Encrypting ${Math.round((encryptedCount/totalCount) * 100)}%`;    
-            });
-          }
-        };
         
         window.utils.postData(
           '/api/user/creds/import',
           payload,
-          { onProgress }
+          { onProgress: renderStreamProgress('Encrypting') }
         )
           .then((resp) => {
             const { lastLine: { error } } = readStreamData(resp);
