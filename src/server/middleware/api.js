@@ -100,6 +100,36 @@ const loadUsers = () => new Promise((resolve, reject) => {
   else resolve({});
 });
 
+const streamOutput = ({
+  onEnd,
+  onProcessingComplete,
+  onStart,
+  resp,
+}) => {
+  const { Readable } = require('stream');
+  const readData = new Readable({ read() {} });
+  
+  resp.writeHead(200, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Transfer-Encoding': 'chunked',
+    'X-Content-Type-Options': 'nosniff',
+  });
+  
+  readData.pipe(resp);
+  readData.on('end', () => {
+    if (onEnd) onEnd();
+    resp.end();
+  });
+  
+  const pending = onStart(readData);
+  
+  Promise.all(pending).then(() => {
+    onProcessingComplete(readData).then(() => {
+      readData.push(null);
+    });
+  });
+};
+
 function createUser({ req, resp }) {
   parseReq(req)
     .then(({ password, username }) => {
@@ -363,17 +393,60 @@ function importCreds({ req, resp }) {
       const encryptedUsername = (await encrypt(username)).value;
       const filePath = getUsersCredentialsPath(encryptedUsername);
       const loadedCreds = await loadUsersCredentials(filePath);
-      const pendingEncryptions = creds.map(async (currCreds) => (await encrypt(currCreds, password)).combined);
+      const encryptedCreds = [];
       
-      Promise.all(pendingEncryptions)
-        .then((encryptedCreds) => {
-          const combinedCreds = [ ...loadedCreds, ...encryptedCreds ];
-          writeFile(filePath, JSON.stringify(combinedCreds, null, 2), 'utf8', (err) => {
-            if (err) returnErrorResp({ label: 'Import Creds write failed', resp })(err);
-            else returnResp({ prefix: 'IMPORT', label: 'Creds', resp });
+      streamOutput({
+        onStart: (stream) => {
+          log('[IMPORT] Started');
+          stream.push(JSON.stringify({
+            recordsCount: creds.length,
+          }));
+          
+          const pending = [];
+          let encryptedCount = 0;
+          for (let i=0; i<creds.length; i++) {
+            pending.push(
+              new Promise((resolve) => {
+                const ndx = i;
+                encrypt(creds[ndx], password)
+                  .then(({ combined }) => {
+                    encryptedCount += 1;
+                    stream.push(`\n${JSON.stringify({ encryptedCount })}`);
+                    encryptedCreds[ndx] = combined;
+                    log(`  [ENCRYPTED] ${ndx}`);
+                    resolve();
+                  })
+                  .catch((err) => {
+                    const data = { error: `Import Creds encryption failed | ${err.stack}` };
+                    stream.push(`\n${JSON.stringify(data)}`);
+                    log(`[ERROR] ${data.error}`);
+                    resolve();
+                  });
+              })
+            );
+          }
+          
+          return pending;
+        },
+        onProcessingComplete: (stream) => {
+          return new Promise((resolve) => {
+            const combinedCreds = [ ...loadedCreds, ...encryptedCreds ];
+            writeFile(filePath, JSON.stringify(combinedCreds, null, 2), 'utf8', (err) => {
+              const data = {};
+              
+              if (err) {
+                data.error = `Import Creds write failed | ${err.stack}`;
+                log(`[ERROR] ${data.error}`);
+              }
+              
+              stream.push(`\n${JSON.stringify(data)}`);
+              resolve();
+            });
           });
-        })
-        .catch(returnErrorResp({ label: `Import Creds encryption failed`, resp }));
+        },
+        onEnd: () => { log('[IMPORT] Done'); },
+        resp,
+      });
     })
     .catch(returnErrorResp({ label: `Import Creds request parse failed`, resp }));
 }
@@ -399,52 +472,46 @@ function deleteCreds({ req, resp }) {
 function loadCreds({ req, resp }) {
   parseReq(req)
     .then(async ({ username, password }) => {
-      const { Readable } = require('stream');
-      const jsonData = new Readable({ read() {} });
       const encryptedUsername = (await encrypt(username)).value;
       const filePath = getUsersCredentialsPath(encryptedUsername);
       const loadedCreds = await loadUsersCredentials(filePath);
       const decryptedItems = [];
       
-      resp.writeHead(200, {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Transfer-Encoding': 'chunked',
-        'X-Content-Type-Options': 'nosniff',
-      });
-      
-      jsonData.pipe(resp);
-      jsonData.on('end', () => {
-        log('[LOAD] Done');
-        resp.end();
-      });
-      
-      log('[LOAD] Started');
-      
-      jsonData.push(JSON.stringify({
-        recordsCount: loadedCreds.length,
-      }));
-      
-      const pending = [];
-      let decryptedCount = 0;
-      for (let i=0; i<loadedCreds.length; i++) {
-        // NOTE - Using Promises instead of async/await was 4 times faster.
-        pending.push(new Promise((resolve) => {
-          const ndx = i;
-          decrypt(loadedCreds[ndx], password).then((decrypted) => {
-            decryptedCount += 1;
-            jsonData.push(`\n${JSON.stringify({ decryptedCount })}`);
-            decryptedItems[ndx] = JSON.parse(decrypted);
-            log(`  [DECRYPTED] ${ndx}`);
+      streamOutput({
+        onStart: (stream) => {
+          log('[LOAD] Started');
+          stream.push(JSON.stringify({
+            recordsCount: loadedCreds.length,
+          }));
+          
+          const pending = [];
+          let decryptedCount = 0;
+          for (let i=0; i<loadedCreds.length; i++) {
+            // NOTE - Using Promises instead of async/await was 4 times faster.
+            pending.push(new Promise((resolve) => {
+              const ndx = i;
+              decrypt(loadedCreds[ndx], password).then((decrypted) => {
+                decryptedCount += 1;
+                stream.push(`\n${JSON.stringify({ decryptedCount })}`);
+                decryptedItems[ndx] = JSON.parse(decrypted);
+                log(`  [DECRYPTED] ${ndx}`);
+                resolve();
+              });
+            }));
+          }
+          
+          return pending;
+        },
+        onProcessingComplete: (stream) => {
+          return new Promise((resolve) => {
+            stream.push(`\n${JSON.stringify({
+              creds: decryptedItems,
+            })}`);
             resolve();
           });
-        }));
-      }
-      
-      Promise.all(pending).then(() => {
-        jsonData.push(`\n${JSON.stringify({
-          creds: decryptedItems,
-        })}`);
-        jsonData.push(null);
+        },
+        onEnd: () => { log('[LOAD] Done'); },
+        resp,
       });
     })
     .catch(returnErrorResp({ label: 'Add Creds request parse failed', resp }));
