@@ -1,5 +1,6 @@
 const { existsSync, readFile, rename, unlink, writeFile } = require('fs');
 const crypto = require('crypto');
+const log = require('../utils/logger').logger('middleware:api');
 const parseReq = require('../utils/parseReq');
 const returnErrorResp = require('../utils/returnErrorResp');
 const returnResp = require('../utils/returnResp');
@@ -412,7 +413,12 @@ function loadCreds({ req, resp }) {
       });
       
       jsonData.pipe(resp);
-      jsonData.on('end', () => { resp.end(); });
+      jsonData.on('end', () => {
+        log('[LOAD] Done');
+        resp.end();
+      });
+      
+      log('[LOAD] Started');
       
       jsonData.push(JSON.stringify({
         recordsCount: loadedCreds.length,
@@ -428,6 +434,7 @@ function loadCreds({ req, resp }) {
             decryptedCount += 1;
             jsonData.push(`\n${JSON.stringify({ decryptedCount })}`);
             decryptedItems[ndx] = JSON.parse(decrypted);
+            log(`  [DECRYPTED] ${ndx}`);
             resolve();
           });
         }));

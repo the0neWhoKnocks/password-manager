@@ -48,6 +48,20 @@ npm run start:dev
 docker-compose up
 ```
 
+### Debugging the App
+
+To see more info about what's going on in the Server you can add this query param
+```
+?debug=*
+```
+After you refresh the page you'll see more logging prefixed with `passman`. If
+there's a particular area you want to focus on, you just have to update the
+param to a log suffix value. So if you see a log like `passman:view`, you just
+have to update the param to:
+```
+?debug=view
+```
+
 ---
 
 ## Releasing

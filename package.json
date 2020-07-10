@@ -15,6 +15,7 @@
   "author": "Trevor Lemon",
   "license": "MIT",
   "dependencies": {
+    "debug": "^4.1.1",
     "etag": "^1.8.1",
     "glob": "^7.1.6",
     "mime-types": "^2.1.27",
