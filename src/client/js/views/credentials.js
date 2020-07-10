@@ -10,6 +10,11 @@
     .replace(/>/g, "&gt;")
     .replace(/</g, "&lt;")
     .replace(/"/g, "&quot;");
+  const readStreamData = (resp) => {
+    const data = resp.split('\n');
+    const lastLine = JSON.parse(data.pop());
+    return { data, lastLine };
+  };
   
   const templates = {
     credCard: ({ _ndx, label, ...creds }) => {
@@ -339,8 +344,7 @@
     let totalCount;
     
     const onProgress = (resp) => {
-      const data = resp.split('\n');
-      const lastLine = JSON.parse(data.pop());
+      const { lastLine } = readStreamData(resp);
       
       if (totalCount === undefined) totalCount = lastLine.recordsCount;
       else {
@@ -357,9 +361,7 @@
       { onProgress }
     )
       .then((resp) => {
-        const data = resp.split('\n');
-        const lastLine = JSON.parse(data.pop());
-        const { creds } = lastLine;
+        const { lastLine: { creds } } = readStreamData(resp);
         loadedCreds = creds;
         
         renderCards(loadedCreds);
@@ -485,12 +487,32 @@
           creds: JSON.parse(data).creds,
           user: { username, password },
         };
+        let totalCount;
         
-        window.utils.postData('/api/user/creds/import', payload)
-          .then(() => {
-            loadCredentials();
+        const onProgress = (resp) => {
+          const { lastLine } = readStreamData(resp);
+          
+          if (totalCount === undefined) totalCount = lastLine.recordsCount;
+          else {
+            const encryptedCount = lastLine.encryptedCount || totalCount;
+            requestAnimationFrame(() => {
+              progressInfo.innerText = `Encrypting ${Math.round((encryptedCount/totalCount) * 100)}%`;    
+            });
+          }
+        };
+        
+        window.utils.postData(
+          '/api/user/creds/import',
+          payload,
+          { onProgress }
+        )
+          .then((resp) => {
+            const { lastLine: { error } } = readStreamData(resp);
+            
+            if (error) alert(error);
+            else loadCredentials();
           })
-          .catch(({ error }) => { alert(error); });
+          .catch((err) => { alert(err); });
       });
     });
     
