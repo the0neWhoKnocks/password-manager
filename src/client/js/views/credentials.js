@@ -16,7 +16,11 @@
     return { data, lastLine };
   };
   const renderStreamProgress = (prefix) => {
+    const progress = credentialsEl.querySelector('circle.is--fill');
+    const maxRadius = getComputedStyle(progress).getPropertyValue('--maxRadius');
     let totalCount;
+    
+    progress.style.setProperty('--currRadius', maxRadius);
     
     return (resp) => {
       const { lastLine } = readStreamData(resp);
@@ -25,7 +29,13 @@
       else {
         const processedCount = lastLine.processedCount || totalCount;
         requestAnimationFrame(() => {
-          progressInfo.innerText = `${prefix} ${Math.round((processedCount/totalCount) * 100)}%`;    
+          const multiplier = processedCount/totalCount;
+          progressInfo.innerText = `${prefix} ${Math.round(multiplier * 100)}%`;
+          
+          progress.style.setProperty(
+            '--currRadius',
+            Math.round(maxRadius - (maxRadius * multiplier))
+          );
         });
       }
     };
@@ -153,8 +163,16 @@
           </div>
         </div>
         <div class="load-progress-indicator">
-          <div class="load-progress-indicator__info"></div>
-          <div class="spinner"></div>
+          <div class="load-progress-indicator__wrapper">
+            <div class="load-progress-indicator__info"></div>
+            <svg
+              class="load-progress-indicator__progress-svg"
+              viewbox="0 0 100 100"
+            >
+              <circle cx="50" cy="50" r="50" class="is--path"></circle>
+              <circle cx="50" cy="50" r="50" class="is--fill"></circle>
+            </svg>
+          </div>
         </div>
       </div>
     `,
