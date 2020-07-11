@@ -8,7 +8,7 @@ const loadUsers = require('./loadUsers');
 
 module.exports = function createUser({ appConfig, req, resp }) {
   parseReq(req)
-    .then(({ password, username }) => {
+    .then(({ password, username } = {}) => {
       if (!password || !username) {
         returnErrorResp({ resp })(
           `Looks like you're missing some data.\n  Username: "${username}"\n  Password: "${password}"`

@@ -21,5 +21,5 @@ module.exports = function deleteCreds({ appConfig, req, resp }) {
         else returnResp({ prefix: 'DELETE', label: 'Creds', resp });
       });
     })
-    .catch(returnErrorResp({ label: `Delete Creds request parse failed`, resp }));
+    .catch(returnErrorResp({ label: 'Delete Creds request parse failed', resp }));
 }

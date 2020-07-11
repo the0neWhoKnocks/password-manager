@@ -2,7 +2,7 @@ module.exports = function inspectMiddleware({
   resp,
   urlPath,
 }) {
-  if( process.env.NODE_ENV === 'dev' ){
+  if (process.env.NODE_ENV === 'dev') {
     // https://nodejs.org/api/inspector.html
     const inspector = require('inspector');
     const returnResp = require('../utils/returnResp');

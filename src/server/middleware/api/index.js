@@ -1,4 +1,3 @@
-
 module.exports = function apiMiddleware({ req, resp, urlPath }) {
   if (urlPath.startsWith('/api')) {
     const returnErrorResp = require('../../utils/returnErrorResp');

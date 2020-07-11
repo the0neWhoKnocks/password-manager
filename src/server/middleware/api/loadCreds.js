@@ -28,13 +28,20 @@ module.exports = function loadCreds({ appConfig, req, resp }) {
             // NOTE - Using Promises instead of async/await was 4 times faster.
             pending.push(new Promise((resolve) => {
               const ndx = i;
-              decrypt(appConfig, loadedCreds[ndx], password).then((decrypted) => {
-                processedCount += 1;
-                stream.push(`\n${JSON.stringify({ processedCount })}`);
-                decryptedItems[ndx] = JSON.parse(decrypted);
-                log(`  [DECRYPTED] ${ndx}`);
-                resolve();
-              });
+              decrypt(appConfig, loadedCreds[ndx], password)
+                .then((decrypted) => {
+                  processedCount += 1;
+                  stream.push(`\n${JSON.stringify({ processedCount })}`);
+                  decryptedItems[ndx] = JSON.parse(decrypted);
+                  log(`  [DECRYPTED] ${ndx}`);
+                  resolve();
+                })
+                .catch((err) => {
+                  const data = { error: `Load Creds decryption failed | ${err.stack}` };
+                  stream.push(`\n${JSON.stringify(data)}`);
+                  log(`[ERROR] ${data.error}`);
+                  resolve();
+                });
             }));
           }
           
@@ -52,5 +59,5 @@ module.exports = function loadCreds({ appConfig, req, resp }) {
         resp,
       });
     })
-    .catch(returnErrorResp({ label: 'Add Creds request parse failed', resp }));
+    .catch(returnErrorResp({ label: 'Load Creds request parse failed', resp }));
 }
