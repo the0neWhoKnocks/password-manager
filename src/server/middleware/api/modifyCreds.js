@@ -52,5 +52,5 @@ module.exports = function modifyCreds({ appConfig, req, resp }) {
         else returnResp({ data: parsedCreds, prefix, label: 'Creds', resp });
       });
     })
-    .catch(returnErrorResp({ label: `Modify Creds request parse failed`, resp }));
+    .catch(returnErrorResp({ label: 'Modify Creds request parse failed', resp }));
 }

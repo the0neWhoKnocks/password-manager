@@ -9,7 +9,7 @@ const loadUsers = require('./loadUsers');
 
 module.exports = function deleteUser({ appConfig, req, resp }) {
   parseReq(req)
-    .then(async ({ username }) => {
+    .then(async ({ username } = {}) => {
       if (!username) returnErrorResp({ resp })('`username` was not passed');
       else {
         const encryptedUsername = (await encrypt(appConfig, username)).value;

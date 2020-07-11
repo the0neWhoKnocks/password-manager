@@ -7,7 +7,7 @@ const returnResp = require('../../utils/returnResp');
 
 module.exports = function createConfig({ req, resp }) {
   parseReq(req)
-    .then(({ cipherKey, salt }) => {
+    .then(({ cipherKey, salt } = {}) => {
       if (!cipherKey || !salt) {
         returnErrorResp({ resp })(
           `Looks like you're missing some data.\n  Cipher Key: "${cipherKey}"\n  Salt: "${salt}"`

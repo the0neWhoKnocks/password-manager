@@ -1,4 +1,4 @@
-const returnErrorResp = ({ label, resp }) => (err) => {
+const returnErrorResp = ({ label = '', resp } = {}) => (err) => {
   if (!resp) throw Error('Missing `resp`');
   else {
     let errMsg = err;
