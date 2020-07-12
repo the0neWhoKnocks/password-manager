@@ -30,10 +30,10 @@ const conf = {
   ],
   coverageThreshold: {
     global: {
-      statements: 1.11,
-      branches: 1.13,
-      functions: 0,
-      lines: 1.24,
+      statements: 50,
+      branches: 49.17,
+      functions: 43.27,
+      lines: 49.44,
     },
   },
   globals: {},
