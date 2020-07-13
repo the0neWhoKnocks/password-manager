@@ -9,8 +9,7 @@
   "scripts": {
     "preinstall": "node ./bin/pre-install.js",
     "start": "node ./src/server",
-    "start:dev": "concurrently --kill-others -p \"[ {name} ]\" -n SERVER -c black.bgGreen \"NODE_ENV=dev node ./watcher.js\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start:dev": "concurrently --kill-others -p \"[ {name} ]\" -n SERVER -c black.bgGreen \"NODE_ENV=dev node ./watcher.js\""
   },
   "repository": {
     "type": "git",
