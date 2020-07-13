@@ -6,10 +6,17 @@ COPY --chown=node:node ./package*.json ./
 RUN ["node", "-e", " \
   const pkg = JSON.parse(fs.readFileSync('package.json', 'utf-8')); \
   const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf-8')); \
+  \
+  let preInstallScript; \
+  if (pkg.scripts && pkg.scripts.preinstall) preInstallScript = pkg.scripts.preinstall; \
+  \
   delete pkg.devDependencies; \
   delete pkg.scripts; \
   delete pkg.version; \
   delete lock.version; \
+  \
+  if (preInstallScript) pkg.scripts = { preinstall: preInstallScript }; \
+  \
   fs.writeFileSync('package.json', JSON.stringify(pkg)); \
   fs.writeFileSync('package-lock.json', JSON.stringify(lock)); \
 "]
@@ -22,10 +29,12 @@ RUN mkdir -p $APP/node_modules && chown -R node:node /home/node/*
 WORKDIR $APP
 # Copy over package related files from the preperation step to install
 # production modules
+COPY --chown=node:node ./bin/pre-install.js ./bin/pre-install.js
 COPY --chown=node:node --from=passman-prep ./package*.json ./
 # Install production dependencies
-RUN npm i --only=production --quiet
+RUN npm i --only=production --quiet --unsafe-perm
 RUN rm ./package*.json
+RUN rm -rf ./bin
 # Copy locally compiled code to the image
 COPY --chown=node:node ./src/client/imgs ./src/client/imgs
 COPY --chown=node:node ./src/client/css ./src/client/css
