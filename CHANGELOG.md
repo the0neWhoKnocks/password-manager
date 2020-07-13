@@ -1,6 +1,25 @@
 # Changelog
 ---
 
+## v1.4.0
+
+**Features**
+- [63a7c29](https://github.com/the0neWhoKnocks/password-manager/commit/63a7c29) - Hide values on load
+- [abdb057](https://github.com/the0neWhoKnocks/password-manager/commit/abdb057) - Better Docker caching by removing devDependencies from package.json
+- [9f48fd8](https://github.com/the0neWhoKnocks/password-manager/commit/9f48fd8) - Added pre-install script to ensure the proper Node/Yarn version
+
+**Bugfixes**
+- [1d7f66f](https://github.com/the0neWhoKnocks/password-manager/commit/1d7f66f) - Dockerfile not running preinstall script
+
+**Misc. Tasks**
+- [e4889a1](https://github.com/the0neWhoKnocks/password-manager/commit/e4889a1) - Run tests if they exist before releasing
+- [1fc4df1](https://github.com/the0neWhoKnocks/password-manager/commit/1fc4df1) - Categorize commits in CHANGELOG
+- [fefbb04](https://github.com/the0neWhoKnocks/password-manager/commit/fefbb04) - Cleaned up command to get VERSION
+- [b9bae66](https://github.com/the0neWhoKnocks/password-manager/commit/b9bae66) - Ignore test `reports` folder
+- [5f2b2d3](https://github.com/the0neWhoKnocks/password-manager/commit/5f2b2d3) - Added logo to README
+
+---
+
 ## v1.3.0
 
 - [7f316b3](https://github.com/the0neWhoKnocks/password-manager/commit/7f316b3) feat: Animate Import/Load progress indicator
