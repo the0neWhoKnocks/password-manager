@@ -1,6 +1,13 @@
 # Changelog
 ---
 
+## v1.4.1
+
+**Bugfixes**
+- [2781962](https://github.com/the0neWhoKnocks/password-manager/commit/2781962) - Tag and Release text don't match CHANGELOG
+
+---
+
 ## v1.4.0
 
 **Features**
