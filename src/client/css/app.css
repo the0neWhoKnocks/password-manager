@@ -403,6 +403,9 @@ custom-dialog button {
   text-align: center;
   border-top: dashed 1px var(--color__cardBorders);
 }
+.has--hidden-values .credentials-card__list-item-value span {
+  filter: blur(4px);
+}
 .credentials-card__clipboard-icon {
   padding: 0 0.25em;
   border-left: dashed 1px var(--color__cardBorders);

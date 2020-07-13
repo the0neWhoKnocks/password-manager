@@ -18,6 +18,8 @@ App's Admin can view the data once it's been saved.
 - User's can export/import their data.
 - User's can filter down credentials based on label name. If you have a ton of
 credentials, this can save you some scrolling.
+- User's can choose to hide values on load by adding the `hideValues=true`
+query parameter. 
 
 ---
 

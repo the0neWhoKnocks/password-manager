@@ -41,6 +41,9 @@
     };
   };
   
+  const queryParams = new URLSearchParams(location.search);
+  const HIDE_VALUES = queryParams.get('hideValues') === 'true';
+  
   const templates = {
     credCard: ({ _ndx, label, ...creds }) => {
       const { customFields = {}, ...standardFields } = creds;
@@ -51,7 +54,7 @@
         >
           <div class="credentials-card__list-item-column">
             <label>${prop}</label>
-            <div class="credentials-card__list-item-value">${obj[prop]}</div>
+            <div class="credentials-card__list-item-value"><span>${obj[prop]}</span></div>
           </div>
           <div class="credentials-card__clipboard-icon">&#x1F4CB;</div>
         </button>
@@ -139,7 +142,7 @@
       `;
     },
     view: () => `
-      <div class="credentials">
+      <div class="credentials ${HIDE_VALUES ? 'has--hidden-values' : ''}">
         <style id="filterStyles"></style>
         <nav class="credentials__top-nav">
           <custom-drop-down label="Credentials">
