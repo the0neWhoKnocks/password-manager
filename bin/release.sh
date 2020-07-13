@@ -85,13 +85,35 @@ if [[ "$bump" != "" ]]; then
     formattedChanges="[$formattedChanges]"
     
     newContent=$(node -pe "
-      let changes = $formattedChanges;
-      for(let i=0; i<changes.length; i++){
-        changes[i] = changes[i]
-          .replace(/^([a-z0-9]+)\s/i, \"- [\$1]($REPO_URL/commit/\$1) \")
-          .replace(/_SQ_/g, \"'\");
-      }
-      changes.join('\n');
+      const categories = {
+        'Features': [], 
+        'Bugfixes': [], 
+        'Misc. Tasks': [], 
+        'Uncategorized': [], 
+      };
+      
+      $formattedChanges
+        .map(change => {
+          return change
+            .replace(/^([a-z0-9]+)\s/i, \"- [\$1]($REPO_URL/commit/\$1) \")
+            .replace(/_SQ_/g, \"'\");
+        })
+        .forEach(change => {
+          if (change.includes(' feat: ')) categories['Features'].push(change.replace(' feat:', ' -'));
+        else if (change.includes(' fix: ')) categories['Bugfixes'].push(change.replace(' fix:', ' -'));
+        else if (change.includes(' chore: ')) categories['Misc. Tasks'].push(change.replace(' chore:', ' -'));
+          else categories['Uncategorized'].push(change);
+        });
+        
+        Object.keys(categories)
+          .map(category => {
+            const categoryItems = categories[category];
+            return (categoryItems.length)
+              ? \`**\${category}**\n\${categoryItems.join('\n')}\`
+              : null;
+          })
+          .filter(category => !!category)
+          .join('\n\n');
     ")
     handleError $? "Couldn't parse commit messages"
 
