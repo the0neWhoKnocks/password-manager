@@ -6,8 +6,9 @@ COPY --chown=node:node ./package*.json ./
 RUN ["node", "-e", " \
   const pkg = JSON.parse(fs.readFileSync('package.json', 'utf-8')); \
   const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf-8')); \
-  delete pkg.version; \
+  delete pkg.devDependencies; \
   delete pkg.scripts; \
+  delete pkg.version; \
   delete lock.version; \
   fs.writeFileSync('package.json', JSON.stringify(pkg)); \
   fs.writeFileSync('package-lock.json', JSON.stringify(lock)); \
