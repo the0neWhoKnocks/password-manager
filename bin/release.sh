@@ -13,7 +13,7 @@ function handleError {
 # give options for skipping bump, or 3 bump options
 echo "[ BUMP ] versions ========================"
 # get current version number
-VERSION=$(node -pe "require('./package.json').version")
+VERSION=$(node -p "require('./package.json').version")
 REPO_URL=$(git config --get remote.origin.url)
 REPO_URL=$(node -p "'$REPO_URL'.replace(/^git@/,'https://').replace('.com:','.com/').replace(/\.git$/,'')")
 
