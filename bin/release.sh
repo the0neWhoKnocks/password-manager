@@ -63,6 +63,12 @@ if [[ "$bump" != "" ]]; then
     latestTag=$(git tag -l | tail -n1)
     #echo "Latest tag: $latestTag"
   fi
+  
+  # run tests if they exist
+  TESTS_SCRIPT=$(node -p "require('./package.json').scripts.test")
+  if [[ "$TESTS_SCRIPT" != "undefined" ]]; then
+    npm run test
+  fi
 
   # get a list of changes between tags
   if [[ "$latestTag" != "" ]]; then
