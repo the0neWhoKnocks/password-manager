@@ -195,7 +195,7 @@ if [[ "$bump" != "" ]]; then
     git add CHANGELOG.md package.json package-lock.json
     git commit -m "Bump to $versionString"
     # tag all the things
-    gitChangeLogMsg="$versionString"$'\n\n'"$changes"
+    gitChangeLogMsg="## $versionString"$'\n\n'"$newContent"
     git tag -a "$versionString" -m "$gitChangeLogMsg"
     docker tag "$LATEST_ID" "$DOCKER_USER/$APP_NAME:$versionString"
     handleError $? "Couldn't tag Docker image"
