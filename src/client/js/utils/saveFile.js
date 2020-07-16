@@ -11,12 +11,12 @@
  *   type: saveFile.FILE_TYPE__JSON,
  * });
  */
-function saveFile({ data, name, type }) {
+function saveFile({ data, name, type } = {}) {
   if (!data || !name || !type) throw Error(`You're missing a required param: data: "${data}" | name: "${name}" | type: "${type}"`);
   
   const file = new Blob([data], { type });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(file);
+  a.href = window.URL.createObjectURL(file);
   a.download = name;
   a.click();
   a.remove();

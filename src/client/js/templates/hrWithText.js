@@ -2,7 +2,7 @@
   const hrWithText = ({
     className = '',
     label = '',
-  }) => {
+  } = {}) => {
     return `
       <div class="hr-with-text ${className}">
         <span>${label}</span>

@@ -30,7 +30,7 @@
         const processedCount = lastLine.processedCount || totalCount;
         requestAnimationFrame(() => {
           const multiplier = processedCount/totalCount;
-          progressInfo.innerText = `${prefix} ${Math.round(multiplier * 100)}%`;
+          progressInfo.textContent = `${prefix} ${Math.round(multiplier * 100)}%`;
           
           progress.style.setProperty(
             '--currRadius',
@@ -199,7 +199,7 @@
     const temp = document.createElement('textarea');
     temp.style.cssText = 'position: absolute; top: -100px; left: -100px;';
     document.body.appendChild(temp);
-    temp.value = el.querySelector('.credentials-card__list-item-value').innerText;
+    temp.value = el.querySelector('.credentials-card__list-item-value').textContent;
     temp.select();
     document.execCommand('copy');
     document.body.removeChild(temp);
@@ -224,9 +224,8 @@
   
   function deleteConfirmationDialog({
     endpoint,
-    hiddenInputs = [],
-    msg = '',
-    onCancel,
+    hiddenInputs,
+    msg,
     onSubmit,
   }) {
     const dialog = document.createElement('custom-dialog');
@@ -258,11 +257,10 @@
     
     form.addEventListener('submit', (ev) => {
       ev.preventDefault();
-      if (onSubmit) onSubmit({ dialog, form });
+      onSubmit({ dialog, form });
     });
     
     cancelBtn.addEventListener('click', () => {
-      if (onCancel) onCancel();
       dialog.close();
     });
   }
@@ -301,7 +299,7 @@
         
         debounceAndDiff({ form, submitBtn });
       }
-      else if (currEl.value === 'delete') {
+      else {
         const ndx = currEl.dataset.ndx;
         const { username } = window.utils.storage.get('userData');
         

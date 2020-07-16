@@ -19,6 +19,7 @@ const getJSFiles = () => new Promise((resolve, reject) => {
     glob('/**/*.js', {
       ignore: [
         '/**/app.js',
+        '/**/*.test.js',
       ],
       root: PUBLIC_JS,
     }, (err, filePaths) => {
