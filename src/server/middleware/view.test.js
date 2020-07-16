@@ -68,7 +68,10 @@ describe('view', () => {
       
       expect(globPath).toBe('/**/*.js');
       expect(globOpts).toEqual({
-        ignore: ['/**/app.js'],
+        ignore: [
+          '/**/app.js',
+          '/**/*.test.js',
+        ],
         root: PUBLIC_JS,
       });
     });

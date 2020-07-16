@@ -1,8 +1,8 @@
 if (!window.utils) window.utils = {};
 
 window.utils.getCSSVar = function getCSSVar(varName, {
-  toNumber = false,
-}) {
+  toNumber,
+} = {}) {
   let val = window.getComputedStyle(document.documentElement).getPropertyValue(varName);
   
   if (toNumber) {
