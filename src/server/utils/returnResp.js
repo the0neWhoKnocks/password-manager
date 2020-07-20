@@ -1,4 +1,4 @@
-const returnResp = ({ data, label, prefix = '', resp }) => {
+const returnResp = ({ data, label, prefix = '', resp } = {}) => {
   if (!resp) throw Error('Missing `resp`');
   else {
     if (prefix && label) console.log(`[${prefix.toUpperCase()}] ${label}`);

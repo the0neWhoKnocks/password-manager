@@ -3,7 +3,7 @@ module.exports = function staticMiddleware({
   resp,
   urlPath,
 }) {
-  if (/^\/(css|js|imgs)\/.*/.test(urlPath)) {  
+  if (/^\/(css|js|imgs)\/.+/.test(urlPath)) {
     resp.preparingAsyncResponse();
     
     const { readFile } = require('fs');

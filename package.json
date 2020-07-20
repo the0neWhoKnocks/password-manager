@@ -9,7 +9,9 @@
   "scripts": {
     "preinstall": "node ./bin/pre-install.js",
     "start": "node ./src/server",
-    "start:dev": "concurrently --kill-others -p \"[ {name} ]\" -n SERVER -c black.bgGreen \"NODE_ENV=dev node ./watcher.js\""
+    "start:dev": "concurrently --kill-others -p \"[ {name} ]\" -n SERVER -c black.bgGreen \"NODE_ENV=dev node ./watcher.js\"",
+    "test": "jest --runInBand --no-watchman --config ./conf.jest.js",
+    "test:watch": "JEST_WATCH=true jest --no-watchman --watch --changedSince=master --config ./conf.jest.js"
   },
   "repository": {
     "type": "git",
@@ -26,8 +28,11 @@
   },
   "devDependencies": {
     "browser-sync": "^2.26.7",
+    "cli-color": "^2.0.0",
     "concurrently": "^5.2.0",
     "eslint": "^7.3.1",
+    "jest": "^26.1.0",
+    "jest-localstorage-mock": "^2.4.2",
     "nodemon": "^2.0.4"
   }
 }

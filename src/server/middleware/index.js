@@ -1,15 +1,7 @@
-const gate = (fn) => (opts) => {
-  // NOTE - `sendingAsyncResponse` is a non-standard prop I add when prepping
-  // async responses. Express requires all middleware to call a `next()` method
-  // if the response isn't returned in the current middleware.
-  const { headersSent, sendingAsyncResponse } = opts.resp;
-  if (!headersSent && !sendingAsyncResponse) fn(opts);
-};
-
 module.exports = [
-  gate(require('./inspect')),
-  gate(require('./logger')),
-  gate(require('./static')),
-  gate(require('./api')),
-  gate(require('./view')),
+  require('./inspect'),
+  require('./logger'),
+  require('./static'),
+  require('./api'),
+  require('./view'),
 ];
