@@ -112,9 +112,16 @@
     }
     
     set modal(isModal) {
-      (isModal)
-        ? this.setAttribute('modal', '')
-        : this.removeAttribute('modal');
+      if (isModal) {
+        this.setAttribute('modal', '');
+        this.removeDialogListeners();
+        this.els.dialog.classList.add(MODIFIER__MODAL);
+      }
+      else {
+        this.removeAttribute('modal');
+        this.addDialogListeners();
+        this.els.dialog.classList.remove(MODIFIER__MODAL);
+      }
       
       this.displayTitleBar();
     }
@@ -170,6 +177,11 @@
       `;
       
       this.KEY_CODE__ESC = 27;
+      this.ANIM_DURATION = 300;
+      this.MODIFIER__CLOSING = MODIFIER__CLOSING;
+      this.MODIFIER__HIDE = MODIFIER__HIDE;
+      this.MODIFIER__MODAL = MODIFIER__MODAL;
+      this.MODIFIER__SHOW = MODIFIER__SHOW;
       
       this.els = {
         closeBtn: shadowRoot.querySelector('.dialog__close-btn'),
@@ -200,23 +212,33 @@
     handleMaskClick() { this.close(); }
     
     handleKeyDown(ev) {
-      if (ev.keyCode === this.KEY_CODE__ESC) this.close();
+      if (
+        (ev.code === 'Escape')
+        || (ev.key === 'Escape')
+        || (ev.keyCode === this.KEY_CODE__ESC)
+      ) this.close();
+    }
+    
+    addDialogListeners() {
+      this.els.closeBtn.addEventListener('click', this.handleCloseClick);
+      this.els.dialogBGMask.addEventListener('click', this.handleMaskClick);
+      window.addEventListener('keydown', this.handleKeyDown);
+    }
+    
+    removeDialogListeners() {
+      this.els.closeBtn.removeEventListener('click', this.handleCloseClick);
+      this.els.dialogBGMask.removeEventListener('click', this.handleMaskClick);
+      window.removeEventListener('keydown', this.handleKeyDown);
     }
     
     show() {
       window.customDialog = this;
       
-      if (!this.els.dialogNav.innerText) {
-        this.els.dialogNav.classList.add(MODIFIER__HIDE);
-      }
+      this.displayTitleBar();
       
       if (!this.parentNode) document.body.appendChild(this);
       
-      if (!this.modal) {
-        this.els.closeBtn.addEventListener('click', this.handleCloseClick);
-        this.els.dialogBGMask.addEventListener('click', this.handleMaskClick);
-        window.addEventListener('keydown', this.handleKeyDown);
-      }
+      if (!this.modal) this.addDialogListeners();
       
       setTimeout(() => {
         this.els.dialog.classList.add(MODIFIER__SHOW);
@@ -225,11 +247,7 @@
     }
     
     close() {
-      if (!this.modal) {
-        this.els.closeBtn.removeEventListener('click', this.handleCloseClick);
-        this.els.dialogBGMask.removeEventListener('click', this.handleMaskClick);
-        window.removeEventListener('keydown', this.handleKeyDown);
-      }
+      if (!this.modal) this.removeDialogListeners();
       
       this.els.dialog.classList.add(MODIFIER__CLOSING);
       this.els.dialogBGMask.classList.remove(MODIFIER__SHOW);

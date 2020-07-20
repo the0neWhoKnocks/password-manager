@@ -13,30 +13,30 @@ function ensureFolderStructure() {
   if (!existsSync(DATA_PATH)) mkdirp.sync(DATA_PATH);
 }
 
-let jsFiles = [];
 const getJSFiles = () => new Promise((resolve, reject) => {
   // Only read the files once 
-  if (!jsFiles.length || process.env.NODE_ENV === 'dev') {
+  if (!viewMiddleware.jsFiles.length || process.env.NODE_ENV === 'dev') {
     glob('/**/*.js', {
       ignore: [
         '/**/app.js',
+        '/**/*.test.js',
       ],
       root: PUBLIC_JS,
     }, (err, filePaths) => {
       if (err) reject(err);
       else {
-        jsFiles = filePaths.map(fp => fp.split(PUBLIC_JS).join('/js'));
-        log('[LOAD] JS files', `\n - ${jsFiles.join('\n - ')}`);
-        resolve(jsFiles);
+        viewMiddleware.jsFiles = filePaths.map(fp => fp.split(PUBLIC_JS).join('/js'));
+        log('[LOAD] JS files', `\n - ${viewMiddleware.jsFiles.join('\n - ')}`);
+        resolve(viewMiddleware.jsFiles);
       }
     });
   }
-  else resolve(jsFiles);
+  else resolve(viewMiddleware.jsFiles);
 });
 
 const configExists = () => existsSync(CONFIG_PATH);
 
-module.exports = function viewMiddleware({ resp }) {
+function viewMiddleware({ resp }) {
   ensureFolderStructure();
   
   const NEEDS_INITAL_SETUP = !configExists();
@@ -80,3 +80,6 @@ module.exports = function viewMiddleware({ resp }) {
       returnErrorResp({ label: 'Failed to render view', resp })(err);
     });
 }
+viewMiddleware.jsFiles = [];
+
+module.exports = viewMiddleware;

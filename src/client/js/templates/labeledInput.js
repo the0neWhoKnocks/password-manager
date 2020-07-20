@@ -5,14 +5,14 @@
     extraClasses = '',
     helpText = '',
     hiddenValue = '',
-    label,
+    label = '',
     lowerMarkup = '',
     name = '',
     placeholder = '',
     required,
     type = 'text',
     value = '',
-  }) => {
+  } = {}) => {
     const id = genUniqueId(name);
     return `
       <div class="labeled-input ${extraClasses}">
