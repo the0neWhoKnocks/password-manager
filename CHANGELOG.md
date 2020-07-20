@@ -1,6 +1,23 @@
 # Changelog
 ---
 
+## v1.5.0
+
+**Misc. Tasks**
+- [5665514](https://github.com/the0neWhoKnocks/password-manager/commit/5665514) - Updated README to point to `master` branch for badges
+- [ad23982](https://github.com/the0neWhoKnocks/password-manager/commit/ad23982) - coverage threshold
+- [ab4b935](https://github.com/the0neWhoKnocks/password-manager/commit/ab4b935) - Lock CodeCov version for Travis
+- [3fca6df](https://github.com/the0neWhoKnocks/password-manager/commit/3fca6df) - Tests for Client
+- [29059ea](https://github.com/the0neWhoKnocks/password-manager/commit/29059ea) - Added Travis & CodeCov support
+- [9524b78](https://github.com/the0neWhoKnocks/password-manager/commit/9524b78) - Tests for Server
+- [d151566](https://github.com/the0neWhoKnocks/password-manager/commit/d151566) - Refactor API middleware for testing
+- [963ad61](https://github.com/the0neWhoKnocks/password-manager/commit/963ad61) - Started adding tests
+
+**Uncategorized**
+- [cab0fac](https://github.com/the0neWhoKnocks/password-manager/commit/cab0fac) Merge pull request #1 from the0neWhoKnocks/chore/tests
+
+---
+
 ## v1.4.1
 
 **Bugfixes**
