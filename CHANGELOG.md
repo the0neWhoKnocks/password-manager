@@ -1,6 +1,16 @@
 # Changelog
 ---
 
+## v1.6.0
+
+**Features**
+- [8eb97f0](https://github.com/the0neWhoKnocks/password-manager/commit/8eb97f0) - Added https support
+
+**Misc. Tasks**
+- [214a96d](https://github.com/the0neWhoKnocks/password-manager/commit/214a96d) - Un-pin CodeCov
+
+---
+
 ## v1.5.0
 
 **Misc. Tasks**
