@@ -4,9 +4,11 @@ describe('server', () => {
   let middleware = [];
   let server;
   let http;
-  let createServer;
+  let https;
+  let requestHandler;
   let listenPort;
   let listenCB;
+  let readFileSync;
   
   function load() {
     jest.resetModules();
@@ -18,16 +20,28 @@ describe('server', () => {
     }));
     http = require('http');
     
+    jest.doMock('https', () => ({
+      createServer: jest.fn(() => server),
+    }));
+    https = require('https');
+    
+    jest.doMock('fs', () => ({
+      readFileSync: jest.fn(() => 'loadedFile'),
+    }));
+    readFileSync = require('fs').readFileSync;
+    
     jest.doMock('./middleware', () => middleware);
     require('./middleware');
 
     require('./index');
     
-    createServer = http.createServer.mock.calls[0][0];
+    requestHandler = (process.env.NODE_EXTRA_CA_CERTS)
+      ? https.createServer.mock.calls[0][0]
+      : http.createServer.mock.calls[0][0];
     [listenPort, listenCB] = server.listen.mock.calls[0];
   }
   
-  describe('createServer', () => {
+  describe('requestHandler', () => {
     const urlPath = '/path/name';
     let req;
     let resp;
@@ -39,7 +53,7 @@ describe('server', () => {
     
     it('should set up custom API', () => {
       load();
-      createServer(req, resp);
+      requestHandler(req, resp);
       resp.preparingAsyncResponse();
       
       expect(resp.sendingAsyncResponse).toBe(true);
@@ -48,7 +62,7 @@ describe('server', () => {
     it('should run middleware against request', () => {
       middleware = [jest.fn(), jest.fn()];
       load();
-      createServer(req, resp);
+      requestHandler(req, resp);
       
       middleware.forEach((m) => {
         expect(m).toHaveBeenCalledWith({ req, resp, urlPath });
@@ -65,7 +79,7 @@ describe('server', () => {
         jest.fn(),
       ];
       load();
-      createServer(req, resp);
+      requestHandler(req, resp);
       
       expect(middleware[0]).toHaveBeenCalledWith({ req, resp, urlPath });
       expect(middleware[1]).toHaveBeenCalledWith({ req, resp, urlPath });
@@ -73,7 +87,39 @@ describe('server', () => {
     });
   });
   
-  describe('listen', () => {
+  describe('https', () => {
+    it('should create an HTTPS Server', () => {
+      const certPath = '/path/to/some.crt';
+      process.env.NODE_EXTRA_CA_CERTS = certPath;
+      load();
+      
+      expect(readFileSync).toHaveBeenCalledWith(certPath, 'utf8');
+      expect(readFileSync).toHaveBeenCalledWith(certPath.replace('.crt', '.key'), 'utf8');
+      expect(https.createServer).toHaveBeenCalledWith(
+        {
+          cert: expect.any(String),
+          key: expect.any(String),
+        },
+        expect.any(Function)
+      );
+      
+      delete process.env.NODE_EXTRA_CA_CERTS;
+    });
+  });
+  
+  describe.each([
+    ['', { protocol: 'http' }],
+    [' on https', { protocol: 'https' }],
+  ])('listen%s', (l, { protocol }) => {
+    beforeEach(() => {
+      if (protocol === 'https') process.env.NODE_EXTRA_CA_CERTS = '/some/path';
+      load();
+    });
+    
+    afterEach(() => {
+      delete process.env.NODE_EXTRA_CA_CERTS;
+    });
+    
     it('should start the Server on the specified port', () => {
       expect(listenPort).toBe(SERVER_PORT);
     });
@@ -89,7 +135,7 @@ describe('server', () => {
       console.log = jest.fn();
       listenCB();
       
-      expect(console.log).toHaveBeenCalledWith(`Server running at http://localhost:${SERVER_PORT}`);
+      expect(console.log).toHaveBeenCalledWith(`Server running at ${protocol}://localhost:${SERVER_PORT}`);
     });
   });
 });

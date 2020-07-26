@@ -1,4 +1,3 @@
-const http = require('http');
 const { create } = require('browser-sync');
 const nodemon = require('nodemon');
 const { SERVER_PORT } = require('./src/constants');
@@ -6,25 +5,41 @@ const { SERVER_PORT } = require('./src/constants');
 const browserSync = create();
 const PORT = +process.env.SERVER_PORT || SERVER_PORT;
 const LOG_PREFIX = '[WATCHER]';
+let httpModule;
+let protocol = 'http';
+let bSyncHTTPS;
+
+if (process.env.NODE_EXTRA_CA_CERTS) {
+  httpModule = require('https');
+  protocol = 'https';
+  bSyncHTTPS = {
+    cert: process.env.NODE_EXTRA_CA_CERTS,
+    key: process.env.NODE_EXTRA_CA_CERTS.replace('.crt', '.key'),
+  }
+}
+else {
+  httpModule = require('http');
+}
 
 const checkServer = () => new Promise((rootResolve, rootReject) => {
   let count = 0;
   const check = () => new Promise((resolve, reject) => {
     setTimeout(() => {
-      const serverAddress = `http://localhost:${ PORT }`;
+      const serverAddress = `${protocol}://localhost:${ PORT }`;
       
       console.log(`${ LOG_PREFIX } Pinging ${ serverAddress }`);
-      http
+      httpModule
         .get(serverAddress, (res) => resolve(res))
         .on('error', (err) => reject(err));
     }, 1000);
   });
-  const handleError = () => {
+  const handleError = (err) => {
     if(count < 3){
       ping();
       count++;
     }
     else{
+      console.log(err)
       rootReject();
     }
   };
@@ -66,11 +81,14 @@ browserSync.init({
     'src/client/index.html',
   ],
   ghostMode: false, // don't mirror interactions in other browsers
+  https: bSyncHTTPS,
   // logLevel: 'debug',
   notify: false, // Don't show any notifications in the browser.
   open: false,
   port: PORT + 1,
-  proxy: `localhost:${PORT}`,
+  proxy: {
+    target: `${protocol}://localhost:${PORT}`,
+  },
   reloadDebounce: 300, // Wait for a specified window of event-silence before sending any reload events.
   snippetOptions: {
     rule: {

@@ -9,7 +9,9 @@ services:
     image: theonewhoknocks/password-manager
     environment:
       NODE_ENV: production
+      NODE_EXTRA_CA_CERTS: /home/node/app/certs/localhost.crt
     ports:
       - "3000:3000"
     volumes:
+      - "${PWD}/certs.localhost:/home/node/app/certs"
       - "${PWD}/data:/home/node/app/data"
