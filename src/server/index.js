@@ -1,4 +1,3 @@
-const http = require('http');
 const url = require('url');
 const middleware = require('./middleware');
 const { SERVER_PORT } = require('../constants');
@@ -22,9 +21,25 @@ const requestHandler = (req, resp) => {
   }
 };
 
-const server = http.createServer(requestHandler);
+let httpModule;
+let protocol = 'http';
+let server;
+
+if (process.env.NODE_EXTRA_CA_CERTS) {
+  const { readFileSync } = require('fs');
+  const cert = readFileSync(process.env.NODE_EXTRA_CA_CERTS, 'utf8');
+  const key = readFileSync(process.env.NODE_EXTRA_CA_CERTS.replace('.crt', '.key'), 'utf8');
+  
+  httpModule = require('https');
+  protocol = 'https';
+  server = httpModule.createServer({ cert, key }, requestHandler);
+}
+else {
+  httpModule = require('http');
+  server = httpModule.createServer(requestHandler);
+}
 
 server.listen(SERVER_PORT, (err) => {
   if (err) console.error('[ERROR]', err);
-  else console.log(`Server running at http://localhost:${SERVER_PORT}`);
+  else console.log(`Server running at ${protocol}://localhost:${SERVER_PORT}`);
 });

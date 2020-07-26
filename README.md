@@ -32,6 +32,50 @@ file in this repo.
 
 ---
 
+## HTTPS
+
+Some experiences will complain if the App isn't run over https. To get that
+wired up, follow the below instructions.
+
+- Run `./bin/gen-certs.sh "App Name"`
+   - This'll create a `certs.app-name` folder with files like
+     ```sh
+     /certs.app-name
+       app-name.crt
+       app-name.key
+       app-name-CA.crt
+       app-name-CA.key
+     ```
+- The non-`-CA` files will be used for the App. When starting the App via Node
+or Docker, you'll need to set this environment variable
+   ```sh
+   `NODE_EXTRA_CA_CERTS="$PWD/certs/app-name.crt"`
+   ```
+   - Note that `$PWD` expands to an absolute file path.
+   - The App automatically determines the `.key` file so long as the `.key` & `.crt`
+   files have the same name.
+- Install the Certificate Authority in **Chrome**:
+   - Settings > In the top input, filter by `cert` > Click `Security`
+   - Click on `Manage certificates`
+   - Go the `Trusted Root Certification Authorities` tab
+   - Choose `Import`
+   - Find the `certs/app-name-CA.crt` file, and add it.
+   - If the cert doesn't seem to be working, try in Incognito first. If it's
+   working there, then just restart Chrome to get it to work in non-Incognito.
+- Install the Certificate Authority in **Firefox**:
+   - Options > In the top input, filter by `cert` > Click `View Certificates...`
+   - Go to the `Authorities` tab
+   - Click on `Import`
+   - Find the `certs/app-name-CA.crt` file, and add it.
+   - Check `Trust this CA to identify websites`.
+- Install the Certificate Authority on **Android**:
+   - Copy the CA `.crt` & `.key` to the device
+   - Go to `Settings` > `Security` > Click on `Install from storage`
+   - Select the `.crt` file
+   - Give it a name
+
+---
+
 ## Development
 
 ### Installation
