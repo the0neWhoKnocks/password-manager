@@ -1,11 +1,10 @@
-const log = require('../../utils/logger').logger('api:loadCreds');
 const parseReq = require('../../utils/parseReq');
 const returnErrorResp = require('../../utils/returnErrorResp');
+const returnResp = require('../../utils/returnResp');
 const decrypt = require('./decrypt');
 const encrypt = require('./encrypt');
 const getUsersCredentialsPath = require('./getUsersCredentialsPath');
 const loadUsersCredentials = require('./loadUsersCredentials');
-const streamOutput = require('./streamOutput');
 
 module.exports = function loadCreds({ appConfig, req, resp }) {
   parseReq(req)
@@ -13,51 +12,25 @@ module.exports = function loadCreds({ appConfig, req, resp }) {
       const encryptedUsername = (await encrypt(appConfig, username)).value;
       const filePath = getUsersCredentialsPath(encryptedUsername);
       const loadedCreds = await loadUsersCredentials(filePath);
-      const decryptedItems = [];
       
-      streamOutput({
-        onStart: (stream) => {
-          log('[LOAD] Started');
-          stream.push(JSON.stringify({
-            recordsCount: loadedCreds.length,
-          }));
-          
-          const pending = [];
-          let processedCount = 0;
-          for (let i=0; i<loadedCreds.length; i++) {
-            // NOTE - Using Promises instead of async/await was 4 times faster.
-            pending.push(new Promise((resolve) => {
-              const ndx = i;
-              decrypt(appConfig, loadedCreds[ndx], password)
-                .then((decrypted) => {
-                  processedCount += 1;
-                  stream.push(`\n${JSON.stringify({ processedCount })}`);
-                  decryptedItems[ndx] = JSON.parse(decrypted);
-                  log(`  [DECRYPTED] ${ndx}`);
-                  resolve();
-                })
-                .catch((err) => {
-                  const data = { error: `Load Creds decryption failed | ${err.stack}` };
-                  stream.push(`\n${JSON.stringify(data)}`);
-                  log(`[ERROR] ${data.error}`);
-                  resolve();
-                });
-            }));
-          }
-          
-          return pending;
-        },
-        onProcessingComplete: (stream) => {
-          return new Promise((resolve) => {
-            stream.push(`\n${JSON.stringify({
-              creds: decryptedItems,
-            })}`);
-            resolve();
-          });
-        },
-        onEnd: () => { log('[LOAD] Done'); },
-        resp,
-      });
+      if (typeof loadedCreds === 'string') {
+        decrypt(appConfig, loadedCreds, password)
+          .then((decrypted) => {
+            returnResp({
+              data: { creds: JSON.parse(decrypted) },
+              prefix: 'DECRYPTED',
+              label: 'User data',
+              resp,
+            });
+          })
+          .catch(returnErrorResp({ label: 'Load Creds decryption failed', resp }));
+      }
+      else {
+        returnResp({
+          data: { creds: loadedCreds },
+          resp,
+        });
+      }
     })
     .catch(returnErrorResp({ label: 'Load Creds request parse failed', resp }));
 }
