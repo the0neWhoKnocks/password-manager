@@ -2,10 +2,11 @@ const { writeFile } = require('fs');
 const log = require('../../utils/logger').logger('api:importCreds');
 const parseReq = require('../../utils/parseReq');
 const returnErrorResp = require('../../utils/returnErrorResp');
+const returnResp = require('../../utils/returnResp');
+const decrypt = require('./decrypt');
 const encrypt = require('./encrypt');
 const getUsersCredentialsPath = require('./getUsersCredentialsPath');
 const loadUsersCredentials = require('./loadUsersCredentials');
-const streamOutput = require('./streamOutput');
 
 module.exports = function importCreds({ appConfig, req, resp }) {
   parseReq(req)
@@ -13,60 +14,25 @@ module.exports = function importCreds({ appConfig, req, resp }) {
       const encryptedUsername = (await encrypt(appConfig, username)).value;
       const filePath = getUsersCredentialsPath(encryptedUsername);
       const loadedCreds = await loadUsersCredentials(filePath);
-      const encryptedCreds = [];
+      const currentCreds = (typeof loadedCreds === 'string')
+        ? await decrypt(appConfig, loadedCreds, password)
+        : loadedCreds;
+      const combinedCreds = [ ...currentCreds, ...creds ];
       
-      streamOutput({
-        onStart: (stream) => {
-          log('[IMPORT] Started');
-          stream.push(JSON.stringify({
-            recordsCount: creds.length,
-          }));
-          
-          const pending = [];
-          let processedCount = 0;
-          for (let i=0; i<creds.length; i++) {
-            pending.push(
-              new Promise((resolve) => {
-                const ndx = i;
-                encrypt(appConfig, creds[ndx], password)
-                  .then(({ combined }) => {
-                    processedCount += 1;
-                    stream.push(`\n${JSON.stringify({ processedCount })}`);
-                    encryptedCreds[ndx] = combined;
-                    log(`  [ENCRYPTED] ${ndx}`);
-                    resolve();
-                  })
-                  .catch((err) => {
-                    const data = { error: `Import Creds encryption failed | ${err.stack}` };
-                    stream.push(`\n${JSON.stringify(data)}`);
-                    log(`[ERROR] ${data.error}`);
-                    resolve();
-                  });
-              })
-            );
-          }
-          
-          return pending;
-        },
-        onProcessingComplete: (stream) => {
-          return new Promise((resolve) => {
-            const combinedCreds = [ ...loadedCreds, ...encryptedCreds ];
-            writeFile(filePath, JSON.stringify(combinedCreds, null, 2), 'utf8', (err) => {
-              const data = {};
-              
-              if (err) {
-                data.error = `Import Creds write failed | ${err.stack}`;
-                log(`[ERROR] ${data.error}`);
-              }
-              
-              stream.push(`\n${JSON.stringify(data)}`);
-              resolve();
-            });
+      encrypt(appConfig, combinedCreds, password)
+        .then(({ combined }) => {
+          writeFile(filePath, JSON.stringify(combined, null, 2), 'utf8', (err) => {
+            const data = {};
+            
+            if (err) {
+              data.error = `Import Creds write failed | ${err.stack}`;
+              log(`[ERROR] ${data.error}`);
+            }
+            
+            returnResp({ data, resp });
           });
-        },
-        onEnd: () => { log('[IMPORT] Done'); },
-        resp,
-      });
+        })
+        .catch(returnErrorResp({ label: 'Import Creds encryption failed', resp }));
     })
-    .catch(returnErrorResp({ label: `Import Creds request parse failed`, resp }));
+    .catch(returnErrorResp({ label: 'Import Creds request parse failed', resp }));
 }

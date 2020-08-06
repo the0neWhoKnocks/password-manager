@@ -6,6 +6,8 @@ jest.mock('../../utils/returnErrorResp');
 const returnErrorResp = require('../../utils/returnErrorResp');
 jest.mock('../../utils/returnResp');
 const returnResp = require('../../utils/returnResp');
+jest.mock('./decrypt');
+const decrypt = require('./decrypt');
 jest.mock('./encrypt');
 const encrypt = require('./encrypt');
 jest.mock('./getUsersCredentialsPath');
@@ -77,8 +79,10 @@ describe('modifyCreds', () => {
       ];
       
       parseReq.mockReturnValue(Promise.resolve(postData));
-      encrypt.mockReturnValueOnce(Promise.resolve({ value: encryptedUsername }));
-      encrypt.mockReturnValueOnce(Promise.resolve({ combined: encryptedData }));
+      encrypt
+        .mockReset()
+        .mockReturnValueOnce(Promise.resolve({ value: encryptedUsername }))
+        .mockReturnValueOnce(Promise.resolve({ combined: encryptedData }));
       getUsersCredentialsPath.mockReturnValue(usersCredsPath);
       loadUsersCredentials.mockReturnValue(Promise.resolve(loadedCreds));
     });
@@ -88,7 +92,6 @@ describe('modifyCreds', () => {
       
       process.nextTick(() => {
         expect(encrypt).toHaveBeenCalledWith(appConfig, username);
-        expect(encrypt).toHaveBeenCalledWith(appConfig, parsedCreds, password);
         expect(getUsersCredentialsPath).toHaveBeenCalledWith(encryptedUsername);
         expect(loadUsersCredentials).toHaveBeenCalledWith(usersCredsPath);
         
@@ -99,33 +102,40 @@ describe('modifyCreds', () => {
     it.each([
       ['adding', {}],
       ['errors while adding', { shouldError: true }],
-      ['updating', { credsNdx: 0 }],
-      ['errors while updating', { credsNdx: 0, shouldError: true }],
+      ['updating', { credsNdx: 1 }],
+      ['errors while updating', { credsNdx: 1, shouldError: true }],
     ])('should handle %s data', async (l, { credsNdx, shouldError }, done) => {
       const updating = credsNdx !== undefined;
+      const decryptedData = [];
       parseReq.mockReturnValue(Promise.resolve({ ...postData, credsNdx }));
+      decrypt.mockReturnValue(Promise.resolve(JSON.stringify(decryptedData)));
       await modifyCreds({ appConfig, req, resp });
     
       process.nextTick(() => {
-        expect(writePath).toBe(usersCredsPath);
-        expect(writeEncoding).toBe('utf8');
+        const modifiedData = encrypt.mock.calls[1][1];
         
-        const parsedData = JSON.parse(writeData);
-        if (updating) expect(parsedData[0]).toBe(encryptedData);
-        else expect(parsedData[parsedData.length - 1]).toBe(encryptedData);
+        expect(encrypt).toHaveBeenCalledWith(appConfig, modifiedData, password);
+        
+        if (updating) expect(modifiedData[credsNdx]).toEqual(parsedCreds);
+        else expect(modifiedData[0]).toEqual(parsedCreds);
         
         if (shouldError) {
           const errPrefix = (updating) ? 'Update' : 'Add';
           const err = 'ruh-roh';
           writeCB(err);
-          
+        
           expect(returnErrorResp).toHaveBeenCalledWith({ label: `${errPrefix} Creds write failed`, resp });
           expect(errorCB).toHaveBeenCalledWith(err);
         }
         else {
           const prefix = (updating) ? 'UPDATED' : 'ADDED';
-          writeCB();
           
+          expect(writePath).toBe(usersCredsPath);
+          expect(writeData).toEqual(JSON.stringify(encryptedData));
+          expect(writeEncoding).toBe('utf8');
+          
+          writeCB();
+        
           expect(returnResp).toHaveBeenCalledWith({ data: parsedCreds, prefix, label: 'Creds', resp });
         }
         

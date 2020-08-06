@@ -10,36 +10,6 @@
     .replace(/>/g, "&gt;")
     .replace(/</g, "&lt;")
     .replace(/"/g, "&quot;");
-  const readStreamData = (resp) => {
-    const data = resp.split('\n');
-    const lastLine = JSON.parse(data.pop());
-    return { data, lastLine };
-  };
-  const renderStreamProgress = (prefix) => {
-    const progress = credentialsEl.querySelector('circle.is--fill');
-    const maxRadius = getComputedStyle(progress).getPropertyValue('--maxRadius');
-    let totalCount;
-    
-    progress.style.setProperty('--currRadius', maxRadius);
-    
-    return (resp) => {
-      const { lastLine } = readStreamData(resp);
-      
-      if (totalCount === undefined) totalCount = lastLine.recordsCount;
-      else {
-        const processedCount = lastLine.processedCount || totalCount;
-        requestAnimationFrame(() => {
-          const multiplier = processedCount/totalCount;
-          progressInfo.textContent = `${prefix} ${Math.round(multiplier * 100)}%`;
-          
-          progress.style.setProperty(
-            '--currRadius',
-            Math.round(maxRadius - (maxRadius * multiplier))
-          );
-        });
-      }
-    };
-  };
   
   const queryParams = new URLSearchParams(location.search);
   const HIDE_VALUES = queryParams.get('hideValues') === 'true';
@@ -193,7 +163,6 @@
   let loadedCreds;
   let cardsEl;
   let filterStyles;
-  let progressInfo;
   
   function addValueToClipboard(el) {
     const temp = document.createElement('textarea');
@@ -301,13 +270,14 @@
       }
       else {
         const ndx = currEl.dataset.ndx;
-        const { username } = window.utils.storage.get('userData');
+        const { password, username } = window.utils.storage.get('userData');
         
         deleteConfirmationDialog({
           endpoint: '/api/user/creds/delete',
           hiddenInputs: [
             { name: 'credsNdx', value: ndx },
             { name: 'username', value: username },
+            { name: 'password', value: password },
           ],
           msg: `<b>"${loadedCreds[ndx].label}"</b>`,
           onSubmit: ({ dialog, form }) => {
@@ -325,11 +295,16 @@
   }
   
   function renderCards(creds) {
+    const MODIFIER__LOADED = 'have--loaded';
     const MODIFIER__NO_CREDS = 'has--no-credentials';
     cardsEl.innerHTML = '';
     
-    if (!creds.length) credsBody.classList.add(MODIFIER__NO_CREDS);
+    if (!creds.length) {
+      credsBody.classList.add(MODIFIER__NO_CREDS);
+      credsBody.classList.remove(MODIFIER__LOADED);
+    }
     else {
+      credsBody.classList.add(MODIFIER__LOADED);
       credsBody.classList.remove(MODIFIER__NO_CREDS);
       
       const sortedCreds = creds
@@ -378,16 +353,13 @@
     window.utils.postData(
       '/api/user/creds/load',
       window.utils.storage.get('userData'),
-      { onProgress: renderStreamProgress('Decrypting') }
     )
-      .then((resp) => {
-        const { lastLine: { creds } } = readStreamData(resp);
+      .then(({ creds }) => {
         loadedCreds = creds;
-        
         renderCards(loadedCreds);
         hideProgressIndicator();
       })
-      .catch((err) => { alert(err); });
+      .catch((err) => { alert(err.stack); });
   }
   
   function createAddOrEditCredsDialog(currentData, ndx) {
@@ -464,7 +436,7 @@
     deleteUserBtn = credentialsEl.querySelector('#deleteUser');
     updateUserBtn = credentialsEl.querySelector('#updateUser');
     filterStyles = credentialsEl.querySelector('#filterStyles');
-    progressInfo = credentialsEl.querySelector('.load-progress-indicator__info');
+    // progressInfo = credentialsEl.querySelector('.load-progress-indicator__info');
     credsBody = credentialsEl.querySelector('.credentials__body');
     credsList = credentialsEl.querySelector('.credentials__list');
     cardsEl = credsList.querySelector('.credentials__cards');
@@ -511,15 +483,12 @@
         window.utils.postData(
           '/api/user/creds/import',
           payload,
-          { onProgress: renderStreamProgress('Encrypting') }
         )
-          .then((resp) => {
-            const { lastLine: { error } } = readStreamData(resp);
-            
+          .then(({ error }) => {
             if (error) alert(error);
             else loadCredentials();
           })
-          .catch((err) => { alert(err); });
+          .catch((err) => { alert(err.stack); });
       });
     });
     
