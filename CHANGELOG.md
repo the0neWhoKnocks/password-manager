@@ -1,6 +1,16 @@
 # Changelog
 ---
 
+## v2.0.0
+
+**Features**
+- [64c32ce](https://github.com/the0neWhoKnocks/password-manager/commit/64c32ce) - Crypto Refactor
+
+**Uncategorized**
+- [34f2ab2](https://github.com/the0neWhoKnocks/password-manager/commit/34f2ab2) Merge pull request #2 from the0neWhoKnocks/feat/crypto-refactor
+
+---
+
 ## v1.6.0
 
 **Features**
