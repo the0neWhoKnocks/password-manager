@@ -6,6 +6,8 @@ jest.mock('../../utils/returnErrorResp');
 const returnErrorResp = require('../../utils/returnErrorResp');
 jest.mock('../../utils/returnResp');
 const returnResp = require('../../utils/returnResp');
+jest.mock('./decrypt');
+const decrypt = require('./decrypt');
 jest.mock('./encrypt');
 const encrypt = require('./encrypt');
 jest.mock('./getUsersCredentialsPath');
@@ -23,12 +25,14 @@ describe('deleteCreds', () => {
   };
   const encryptedUsername = 'asdf9a87dsf98as7df';
   const usersCredsPath = `creds_${encryptedUsername}.json`;
-  const secondCred = 'ie754ihfsdufso:jlaksdjfop87495iuajldoknalksdfuoieuytiahdf';
+  const secondCred = { cred: 2 };
   const usersCredentials = [
-    'asd9f8asd7fad:jalk4jroiuasdoifakdfnvlihierhfaijsdflkasdhf',
+    { cred: 1 },
     secondCred,
-    '09809usdofiusd:jklweiruoa7i4ujlsdkfjalpsdkuo4ijtadlkfnasd',
+    { cred: 3 },
   ];
+  const loadedEncryptedData = 'rweiyrwiueyrwe:mnmbhdkfiuyoiuwehfiajsdfjasdbfliahsiduf';
+  const newEncryptedData = 'sdfuoiuasodf:falksdjfoieruyoaisdflkasdflkasuroiaehrpoaidflaskdhf';
   const req = {};
   const resp = {};
   const credsNdx = 1;
@@ -49,9 +53,12 @@ describe('deleteCreds', () => {
     let writeCB;
     
     beforeEach(() => {
-      encrypt.mockReturnValueOnce(Promise.resolve({ value: encryptedUsername }));
+      encrypt
+        .mockReturnValueOnce(Promise.resolve({ value: encryptedUsername }))
+        .mockReturnValueOnce(Promise.resolve({ combined: newEncryptedData }));
+      decrypt.mockReturnValueOnce(Promise.resolve(JSON.stringify(usersCredentials)));
       getUsersCredentialsPath.mockReturnValue(usersCredsPath);
-      loadUsersCredentials.mockReturnValue(Promise.resolve(usersCredentials));
+      loadUsersCredentials.mockReturnValue(Promise.resolve(loadedEncryptedData));
       writeFile.mockImplementation((p, d, e, cb) => {
         writePath = p;
         writeData = d;
@@ -69,10 +76,24 @@ describe('deleteCreds', () => {
         expect(encrypt).toHaveBeenCalledWith(appConfig, username);
         expect(getUsersCredentialsPath).toHaveBeenCalledWith(encryptedUsername);
         expect(loadUsersCredentials).toHaveBeenCalledWith(usersCredsPath);
-        expect(usersCredentials.includes(secondCred)).toBe(false);
+        expect(encrypt.mock.calls[1][1].includes(secondCred)).toBe(false);
         expect(writePath).toBe(usersCredsPath);
-        expect(writeData).toBe(JSON.stringify(usersCredentials, null, 2));
+        expect(writeData).toBe(JSON.stringify(newEncryptedData, null, 2));
         expect(writeEncoding).toBe('utf8');
+        
+        done();
+      });
+    });
+    
+    it('should handle an encryption failure', async (done) => {
+      encrypt
+        .mockReset()
+        .mockReturnValueOnce(Promise.resolve({ value: encryptedUsername }))
+        .mockReturnValueOnce(Promise.reject());
+      await deleteCreds({ appConfig, req, resp });
+      
+      process.nextTick(() => {
+        expect(returnErrorResp).toHaveBeenCalledWith({ label: 'Delete Creds encryption failed', resp });
         
         done();
       });

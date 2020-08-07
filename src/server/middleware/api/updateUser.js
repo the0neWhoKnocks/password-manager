@@ -58,19 +58,15 @@ module.exports = function updateUser({ appConfig, req, resp }) {
         );
         
         if (newPassword !== oldPassword) {
-          const reEncryptedCreds = (await loadUsersCredentials(oldCredsPath)).map(async (creds) => {
-            const decryptedCreds = JSON.parse(await decrypt(appConfig, creds, oldPassword));
-            return (await encrypt(appConfig, decryptedCreds, newPassword)).combined;
-          });
-          
-          pendingReEncryption = Promise.all(reEncryptedCreds).then((reCreds) => {
-            return new Promise((resolve, reject) => {
-              writeFile(oldCredsPath, JSON.stringify(reCreds, null, 2), 'utf8', (err) => {
+          const loadedCreds = await loadUsersCredentials(oldCredsPath);
+          const decryptedCreds = JSON.parse(await decrypt(appConfig, loadedCreds, oldPassword));
+          pendingReEncryption = encrypt(appConfig, decryptedCreds, newPassword)
+            .then(({ combined }) => new Promise((resolve, reject) => {
+              writeFile(oldCredsPath, JSON.stringify(combined, null, 2), 'utf8', (err) => {
                 if (err) reject(`Failed to update "${oldCredsPath}"\n${err.stack}`);
                 else resolve();
               });
-            });
-          });
+            }));
           
           pending.push(pendingReEncryption);
         }

@@ -50,6 +50,8 @@ describe('loadFile', () => {
     window.utils.loadFile();
     
     expect(document.createElement).toHaveBeenCalledWith('input');
+    expect(fileInput.type).toBe('file');
+    expect(fileInput.accept).toBe('.json');
     expect(inputEvType).toBe('change');
     expect(fileInput.click).toHaveBeenCalled();
   });

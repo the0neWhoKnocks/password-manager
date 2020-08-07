@@ -288,6 +288,9 @@ custom-dialog button {
 .credentials__body.has--no-credentials .credentials__filter-input {
   display: none;
 }
+.credentials__body:not(.have--loaded) .credentials__list {
+  display: none;
+}
 
 .credentials__list {
   height: 100%;

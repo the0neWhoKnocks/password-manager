@@ -15,6 +15,7 @@ function loadFile({ onFileAdd } = {}) {
   return new Promise((resolve) => {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
+    fileInput.accept = '.json';
     
     fileInput.addEventListener('change', (ev) => {
       const importedFile = ev.target.files[0];

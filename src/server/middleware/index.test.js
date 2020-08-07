@@ -1,4 +1,3 @@
-jest.mock('./inspect');
 jest.mock('./logger');
 jest.mock('./static');
 jest.mock('./api');

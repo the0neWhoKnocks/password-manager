@@ -129,11 +129,11 @@ describe('updateUser', () => {
     parseReq.mockImplementation(() => Promise.resolve(postData));
     encrypt.mockImplementation((conf, data) => {
       let eData = {};
-      
       if (data === oldUsername) eData.value = encryptedOldUsername;
       else if (data === newUsername) eData.value = encryptedNewUsername;
-      else if (data === decryptedCreds[0]) eData.combined = reEncryptedCreds[0];
-      else if (data === decryptedCreds[1]) eData.combined = reEncryptedCreds[1];
+      // else if (data === decryptedCreds[0]) eData.combined = reEncryptedCreds[0];
+      // else if (data === decryptedCreds[1]) eData.combined = reEncryptedCreds[1];
+      else if (JSON.stringify(data) === JSON.stringify(decryptedCreds)) eData.combined = reEncryptedCreds;
       else if (data.username && data.password) eData.combined = encryptedUserData;
       
       return Promise.resolve(eData);
@@ -142,8 +142,9 @@ describe('updateUser', () => {
       let eData;
       
       if (data === encryptedUserData) eData = JSON.stringify(decryptedUserData);
-      else if (data === encryptedCreds[0]) eData = JSON.stringify(decryptedCreds[0]);
-      else if (data === encryptedCreds[1]) eData = JSON.stringify(decryptedCreds[1]);
+      // else if (data === encryptedCreds[0]) eData = JSON.stringify(decryptedCreds[0]);
+      // else if (data === encryptedCreds[1]) eData = JSON.stringify(decryptedCreds[1]);
+      else if (data === encryptedCreds) eData = JSON.stringify(decryptedCreds);
       
       return Promise.resolve(eData);
     });
@@ -273,7 +274,7 @@ describe('updateUser', () => {
           }
           else {
             writeCB();
-            if (updatingPassword) writeCredsCB();
+            if (updatingPassword) writeCredsCB(); 
             if (updatingUsername) renameCB();
             
             setImmediate(() => {
@@ -297,10 +298,8 @@ describe('updateUser', () => {
               
               if (updatingPassword) {
                 expect(loadUsersCredentials).toHaveBeenCalledWith(oldUsersCredsPath);
-                expect(decrypt).toHaveBeenCalledWith(appConfig, encryptedCreds[0], oldPassword);
-                expect(decrypt).toHaveBeenCalledWith(appConfig, encryptedCreds[1], oldPassword);
-                expect(encrypt).toHaveBeenCalledWith(appConfig, decryptedCreds[0], currPassword);
-                expect(encrypt).toHaveBeenCalledWith(appConfig, decryptedCreds[1], currPassword);
+                expect(decrypt).toHaveBeenCalledWith(appConfig, encryptedCreds, oldPassword);
+                expect(encrypt).toHaveBeenCalledWith(appConfig, decryptedCreds, newPassword);
                 expect(writeCredsPath).toBe(oldUsersCredsPath);
                 expect(writeCredsData).toBe(JSON.stringify(reEncryptedCreds, null, 2));
                 expect(writeCredsEncoding).toBe('utf8');

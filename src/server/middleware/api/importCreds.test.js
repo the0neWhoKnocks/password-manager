@@ -7,14 +7,16 @@ jest.mock('../../utils/parseReq');
 const parseReq = require('../../utils/parseReq');
 jest.mock('../../utils/returnErrorResp');
 const returnErrorResp = require('../../utils/returnErrorResp');
+jest.mock('../../utils/returnResp');
+const returnResp = require('../../utils/returnResp');
+jest.mock('./decrypt');
+const decrypt = require('./decrypt');
 jest.mock('./encrypt');
 const encrypt = require('./encrypt');
 jest.mock('./getUsersCredentialsPath');
 const getUsersCredentialsPath = require('./getUsersCredentialsPath');
 jest.mock('./loadUsersCredentials');
 const loadUsersCredentials = require('./loadUsersCredentials');
-jest.mock('./streamOutput');
-const streamOutput = require('./streamOutput');
 
 const importCreds = require('./importCreds');
 
@@ -26,24 +28,23 @@ describe('importCreds', () => {
   };
   const encryptedUsername = 'asdf9a87dsf98as7df';
   const usersCredsPath = `creds_${encryptedUsername}.json`;
+  const loadedEncryptedData = 'rweiyrwiueyrwe:mnmbhdkfiuyoiuwehfiajsdfjasdbfliahsiduf';
+  const newEncryptedData = 'sdfuoiuasodf:falksdjfoieruyoaisdflkasdflkasuroiaehrpoaidflaskdhf';
   const req = {};
   const resp = {};
   const creds = [
-    'sldfiua8usdfuas:ajsdoif7asodifuapsoidfau7sd8fuapsdifu',
-    'klsdfjoiasdufojiawef:sjldkfuaop87euoriajweokfnlaiosd7urp98aweroaisd',
+    { cred: 3 },
+    { cred: 4 },
   ];
-  const loadedCreds = [
-    'fakjsdhflijahelkjasdhf:id87foiaudhfiasdfyas8dfhaiouesfyisahdfiuohsd',
-    'niuiruhisdjfhsiyihu:798u4irahefoy8a34hriuawo3f8hasifoa8wyerhiaudfiu',
+  const decryptedCreds = [
+    { cred: 1 },
+    { cred: 2 },
   ];
   const password = 'passX';
   const username = 'userX';
   const user = { password, username };
   let postData = { creds, user };
   let errorCB;
-  let onStart;
-  let onProcessingComplete;
-  let onEnd;
   let writePath;
   let writeData;
   let writeEncoding;
@@ -68,14 +69,12 @@ describe('importCreds', () => {
   describe('request parsed', () => {
     beforeEach(() => {
       parseReq.mockReturnValue(Promise.resolve(postData));
-      streamOutput.mockImplementation(({ onStart: oS, onProcessingComplete: oP, onEnd: oE }) => {
-        onStart = oS;
-        onProcessingComplete = oP;
-        onEnd = oE;
-      });
-      encrypt.mockReturnValueOnce(Promise.resolve({ value: encryptedUsername }));
+      encrypt
+        .mockReturnValueOnce(Promise.resolve({ value: encryptedUsername }))
+        .mockReturnValueOnce(Promise.resolve({ combined: newEncryptedData }));
+      decrypt.mockReturnValueOnce(Promise.resolve(decryptedCreds));
       getUsersCredentialsPath.mockReturnValue(usersCredsPath);
-      loadUsersCredentials.mockReturnValue(Promise.resolve(loadedCreds));
+      loadUsersCredentials.mockReturnValue(Promise.resolve(loadedEncryptedData));
     });
     
     it('should get the data required to import creds', async (done) => {
@@ -86,109 +85,77 @@ describe('importCreds', () => {
         expect(encrypt).toHaveBeenCalledWith(appConfig, username);
         expect(getUsersCredentialsPath).toHaveBeenCalledWith(encryptedUsername);
         expect(loadUsersCredentials).toHaveBeenCalledWith(usersCredsPath);
-        expect(streamOutput).toHaveBeenCalledWith({ onStart, onProcessingComplete, onEnd, resp });
         
         done();
       });
     });
     
-    describe('onStart', () => {
-      it('should create a queue of pending encryptions', async (done) => {
-        const stream = [];
-        encrypt.mockReturnValue(Promise.resolve({ combined: 'sdfasdf:asdfadfasdf' }));
-        
-        const pending = await onStart(stream);
-        
-        expect(log).toHaveBeenCalledWith('[IMPORT] Started');
-        expect(stream.length).toBe(creds.length + 1);
-        expect(stream[0]).toEqual(JSON.stringify({ recordsCount: creds.length }));
-        
-        Promise.all(pending).then((resolvedPromises) => {
-          expect(resolvedPromises.length).toBe(creds.length);
-          expect(log).toHaveBeenCalledWith(`  [ENCRYPTED] 0`);
-          expect(stream[1]).toEqual(`\n${JSON.stringify({ processedCount: 1 })}`);
-          expect(log).toHaveBeenCalledWith(`  [ENCRYPTED] 1`);
-          expect(stream[2]).toEqual(`\n${JSON.stringify({ processedCount: 2 })}`);
-          
-          done();
-        });
-      });
+    it('should combine credentials', async (done) => {
+      parseReq.mockReturnValue(Promise.resolve(postData));
+      await importCreds({ appConfig, req, resp });
       
-      it('should add error data', async (done) => {
-        const stream = [];
-        const err = new Error('encryption failed');
-        encrypt.mockImplementation((...args) => {
-          return (args[1] === creds[0] || args[1] === creds[1])
-            ? Promise.reject(err)
-            : Promise.resolve({ value: encryptedUsername });
-        });
-        parseReq.mockReturnValue(Promise.resolve(postData));
+      process.nextTick(() => {
+        expect(encrypt).toHaveBeenCalledWith(appConfig, [...decryptedCreds, ...postData.creds], password);
         
-        await importCreds({ appConfig, req, resp });
-        
-        process.nextTick(async () => {
-          const pending = await onStart(stream);
-          
-          Promise.all(pending).then(() => {
-            const { error } = JSON.parse(stream[1]);
-            expect(log).toHaveBeenCalledWith(`[ERROR] ${error}`);
-            
-            done();
-          });
-        })
+        done();
       });
     });
     
-    describe('onProcessingComplete', () => {
-      let stream;
+    it('should account for the first import', async (done) => {
+      parseReq.mockReturnValue(Promise.resolve(postData));
+      loadUsersCredentials.mockReturnValue([]);
+      await importCreds({ appConfig, req, resp });
       
-      beforeEach(() => {
-        stream = [];
-        encrypt.mockReturnValue(Promise.resolve({ combined: 'sdfasdf:asdfadfasdf' }));
+      process.nextTick(() => {
+        expect(encrypt).toHaveBeenCalledWith(appConfig, [...postData.creds], password);
+        
+        done();
       });
-      
-      it('should start writing the imported data', (done) => {
-        Promise.all(onStart(stream)).then(() => {
-          onProcessingComplete(stream);
-          
+    });
+    
+    describe('writeFile', () => {
+      it('should account for the first import', async (done) => {
+        parseReq.mockReturnValue(Promise.resolve(postData));
+        await importCreds({ appConfig, req, resp });
+        
+        process.nextTick(() => {
           expect(writePath).toBe(usersCredsPath);
-          expect(JSON.parse(writeData).length).toBe(creds.length + loadedCreds.length);
+          expect(JSON.parse(writeData)).toBe(newEncryptedData);
           expect(writeEncoding).toBe('utf8');
           
           done();
         });
       });
       
-      it('should handle write errors', (done) => {
-        Promise.all(onStart(stream)).then(() => {
+      it('should handle write error', async (done) => {
+        parseReq.mockReturnValue(Promise.resolve(postData));
+        await importCreds({ appConfig, req, resp });
+        
+        process.nextTick(() => {
           const err = new Error('ruh-roh');
-          
-          onProcessingComplete(stream).then(() => {
-            const { error } = JSON.parse(stream.pop());
-            expect(log).toHaveBeenCalledWith(`[ERROR] ${error}`);
-          
-            done();
-          });
+          const errMsg = `Import Creds write failed | ${err.stack}`;
           writeCB(err);
+          
+          expect(log).toHaveBeenCalledWith(`[ERROR] ${errMsg}`);
+          expect(returnResp).toHaveBeenCalledWith({ data: { error: errMsg }, resp });
+          
+          done();
         });
       });
       
-      it('should handle write success', (done) => {
-        Promise.all(onStart(stream)).then(() => {
-          onProcessingComplete(stream).then(() => {
-            expect(JSON.parse(stream.pop())).toEqual({});
-          
-            done();
-          });
+      it('should handle write success', async (done) => {
+        parseReq.mockReturnValue(Promise.resolve(postData));
+        await importCreds({ appConfig, req, resp });
+        
+        process.nextTick(() => {
+          log.mockReset();
           writeCB();
+          
+          expect(log).not.toHaveBeenCalled();
+          expect(returnResp).toHaveBeenCalledWith({ data: {}, resp });
+          
+          done();
         });
-      });
-    });
-    
-    describe('onEnd', () => {
-      it('should log that the import has finished', () => {
-        onEnd();
-        expect(log).toHaveBeenCalledWith('[IMPORT] Done');
       });
     });
   });

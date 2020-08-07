@@ -10,22 +10,14 @@ describe('credentials', () => {
   const addErr = 'failed add';
   const deleteErr = 'failed delete';
   const importErr = 'failed import';
-  const loadErr = 'failed load';
+  const loadErr = new Error('failed load');
   const updateErr = 'failed update';
   const username = 'John';
   const password = 'seeecret';
   const userData = { username, password };
-  const creds = [
-    {
-      label: 'AAA',
-      password: 'asdfwerasfd',
-      customFields: { cust1: 'val1', cust2: 'val2' },
-    },
-    { label: 'PayPal', password: '87aysd8ftas' },
-    { label: 'Pet Smart', password: 'iioioiwems' },
-  ];
-  const credsResp = `${JSON.stringify({ recordsCount: 20 })}\n${JSON.stringify({ processedCount: 10 })}\n${JSON.stringify({ creds })}`;
   const inputEv = new Event('input', { bubbles: true, cancelable: true });
+  let creds;
+  let credsResp;
   let addSuccessful = true;
   let deleteSuccessful = true;
   let updateSuccessful = true;
@@ -37,13 +29,10 @@ describe('credentials', () => {
   let deleteUserBtn;
   let updateUserBtn;
   let filterStyles;
-  let progressInfo;
   let credsBody;
   let credsList;
   let postDataURL;
   let postDataPayload;
-  let postDataOpts;
-  let rAF;
   let loadResolve;
   let loadReject;
   let importResolve;
@@ -62,20 +51,28 @@ describe('credentials', () => {
   };
   
   beforeEach(() => {
+    creds = [
+      {
+        label: 'AAA',
+        password: 'asdfwerasfd',
+        customFields: { cust1: 'val1', cust2: 'val2' },
+      },
+      { label: 'PayPal', password: '87aysd8ftas' },
+      { label: 'Pet Smart', password: 'iioioiwems' },
+    ];
+    credsResp = { creds };
+    
     if (window.customDialog) {
       window.customDialog.close();
       jest.runAllTimers();
       [...document.querySelectorAll('custom-dialog')].forEach(el => el.remove());
     }
     
-    window.requestAnimationFrame = jest.fn((cb) => { rAF = cb; });
-    
-    window.utils.postData = jest.fn((url, payload, opts) => {
+    window.utils.postData = jest.fn((url, payload) => {
       let ret;
       
       postDataURL = url;
       postDataPayload = payload;
-      postDataOpts = opts;
       
       if (url.endsWith('add')) {
         ret = (addSuccessful) ? Promise.resolve(postDataPayload) : Promise.reject({ error: addErr });
@@ -125,7 +122,6 @@ describe('credentials', () => {
     deleteUserBtn = credentialsEl.querySelector('#deleteUser');
     updateUserBtn = credentialsEl.querySelector('#updateUser');
     filterStyles = credentialsEl.querySelector('#filterStyles');
-    progressInfo = credentialsEl.querySelector('.load-progress-indicator__info');
     credsBody = credentialsEl.querySelector('.credentials__body');
     credsList = credentialsEl.querySelector('.credentials__list');
   });
@@ -139,36 +135,14 @@ describe('credentials', () => {
   
   describe('loadCredentials', () => {
     it('should display the Progress indicator', () => {
-      let resp = JSON.stringify({ recordsCount: 20 });
-      
       expect(credentialsEl.classList.contains('is--loading')).toBe(true);
-      
-      postDataOpts.onProgress(resp);
-      expect(progressInfo.textContent).toBe('');
-      
-      [
-        [3, '15'],
-        [7, '35'],
-        [18, '90'],
-      ].forEach(([ processedCount, percentage ]) => {
-        resp += `\n${JSON.stringify({ processedCount })}`;
-        postDataOpts.onProgress(resp);
-        rAF();
-        expect(progressInfo.textContent).toBe(`Decrypting ${percentage}%`);
-      });
-      
-      resp += `\n${JSON.stringify({ fu: 'bar' })}`;
-      postDataOpts.onProgress(resp);
-      rAF();
-      expect(progressInfo.textContent).toBe('Decrypting 100%');
     });
     
     it('should handle successful submission of data', (done) => {
       expect(postDataURL).toBe('/api/user/creds/load');
       expect(postDataPayload).toEqual(userData);
-      expect(postDataOpts).toEqual({ onProgress: expect.any(Function) });
       
-      loadResolve(JSON.stringify({ creds: [] }));
+      loadResolve({ creds: [] });
       
       process.nextTick(() => {
         expect(credentialsEl.classList.contains('is--loading')).toBe(false);
@@ -179,15 +153,25 @@ describe('credentials', () => {
     it('should handle a failed submission of data', (done) => {
       loadReject(loadErr);
       process.nextTick(() => {
-        expect(window.alert).toHaveBeenCalledWith(loadErr);
+        expect(window.alert).toHaveBeenCalledWith(loadErr.stack);
         done();
       });
     });
     
     it('should inform the User that Creds need to be added', (done) => {
-      loadResolve(JSON.stringify({ creds: [] }));
+      loadResolve({ creds: [] });
       process.nextTick(() => {
         expect(credsBody.classList.contains('has--no-credentials')).toBe(true);
+        expect(credsBody.classList.contains('have--loaded')).toBe(false);
+        done();
+      });
+    });
+    
+    it('should only show the creds section when there are creds', (done) => {
+      loadResolve(credsResp);
+      process.nextTick(() => {
+        expect(credsBody.classList.contains('has--no-credentials')).toBe(false);
+        expect(credsBody.classList.contains('have--loaded')).toBe(true);
         done();
       });
     });
@@ -368,7 +352,7 @@ describe('credentials', () => {
           loadResolve(credsResp);
         }
         else {
-          loadResolve(JSON.stringify({ creds: [] }));
+          loadResolve({ creds });
           addCredsBtn.click();
         }
         
@@ -625,7 +609,6 @@ describe('credentials', () => {
         onFileAdd = opts.onFileAdd;
         return Promise.resolve(JSON.stringify({ creds }));
       });
-      progressInfo.textContent = '';
       importCredsBtn.click();
       onFileAdd();
       
@@ -634,26 +617,6 @@ describe('credentials', () => {
         expect(credentialsEl.classList.contains('is--loading')).toBe(true);
         expect(postDataURL).toBe('/api/user/creds/import');
         expect(postDataPayload).toEqual({ creds, user: userData });
-        
-        let resp = JSON.stringify({ recordsCount: 20 });
-        postDataOpts.onProgress(resp);
-        expect(progressInfo.textContent).toBe('');
-        
-        [
-          [3, '15'],
-          [7, '35'],
-          [18, '90'],
-        ].forEach(([ processedCount, percentage ]) => {
-          resp += `\n${JSON.stringify({ processedCount })}`;
-          postDataOpts.onProgress(resp);
-          rAF();
-          expect(progressInfo.textContent).toBe(`Encrypting ${percentage}%`);
-        });
-      
-        resp += `\n${JSON.stringify({ fu: 'bar' })}`;
-        postDataOpts.onProgress(resp);
-        rAF();
-        expect(progressInfo.textContent).toBe('Encrypting 100%');
         
         done();
       });
@@ -670,7 +633,7 @@ describe('credentials', () => {
     
     it('should handle an error within a successful import', (done) => {
       const error = 'ruh-roh';
-      importResolve(JSON.stringify({ error }));
+      importResolve({ error });
       importCredsBtn.click();
       process.nextTick(() => {
         expect(window.alert).toHaveBeenCalledWith(error);
@@ -682,7 +645,7 @@ describe('credentials', () => {
       importReject(importErr);
       importCredsBtn.click();
       process.nextTick(() => {
-        expect(window.alert).toHaveBeenCalledWith(loadErr);
+        expect(window.alert).toHaveBeenCalledWith(loadErr.stack);
         done();
       });
     });
