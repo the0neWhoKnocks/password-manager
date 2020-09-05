@@ -106,8 +106,8 @@ if [[ "$bump" != "" ]]; then
         })
         .forEach(change => {
           if (change.includes(' feat: ')) categories['Features'].push(change.replace(' feat:', ' -'));
-        else if (change.includes(' fix: ')) categories['Bugfixes'].push(change.replace(' fix:', ' -'));
-        else if (change.includes(' chore: ')) categories['Misc. Tasks'].push(change.replace(' chore:', ' -'));
+          else if (change.includes(' fix: ')) categories['Bugfixes'].push(change.replace(' fix:', ' -'));
+          else if (change.includes(' chore: ')) categories['Misc. Tasks'].push(change.replace(' chore:', ' -'));
           else categories['Uncategorized'].push(change);
         });
         
@@ -196,6 +196,7 @@ if [[ "$bump" != "" ]]; then
     git commit -m "Bump to $versionString"
     # tag all the things
     gitChangeLogMsg="## $versionString"$'\n\n'"$newContent"
+    sanitizedGitChangeLogMsg=$(echo "$gitChangeLogMsg" | sed 's/"/\\"/g')
     git tag -a "$versionString" -m "$gitChangeLogMsg"
     docker tag "$LATEST_ID" "$DOCKER_USER/$APP_NAME:$versionString"
     handleError $? "Couldn't tag Docker image"
@@ -219,7 +220,7 @@ if [[ "$bump" != "" ]]; then
         repo=${BASH_REMATCH[5]}
       fi
       
-      jsonPayload="{ \"tag_name\": \"$versionString\", \"target_commitish\": \"$branch\", \"name\": \"$versionString\", \"body\": \"$gitChangeLogMsg\", \"draft\": false, \"prerelease\": false }"
+      jsonPayload="{ \"tag_name\": \"$versionString\", \"target_commitish\": \"$branch\", \"name\": \"$versionString\", \"body\": \"$sanitizedGitChangeLogMsg\", \"draft\": false, \"prerelease\": false }"
       # encode newlines for JSON
       jsonPayload=$(echo "$jsonPayload" | sed -z 's/\n/\\n/g')
       # remove trailing newline
