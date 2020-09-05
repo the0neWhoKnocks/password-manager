@@ -30,6 +30,11 @@
             ${disabled ? 'disabled' : ''}
           />
           <label for="${id}">${label}</label>
+          ${required && (`
+            <svg class="svg-icon">
+              <use xlink:href="#asterisk" xmlns:xlink="http://www.w3.org/1999/xlink"></use>
+            </svg>
+          `)}
         </div>
         ${helpText && `<p class="help-text">${helpText}</p>`}
         ${lowerMarkup}
