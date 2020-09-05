@@ -1,6 +1,17 @@
 # Changelog
 ---
 
+## v2.1.0
+
+**Features**
+- [e8e9cac](https://github.com/the0neWhoKnocks/password-manager/commit/e8e9cac) - Required inputs display the same asterisk symbol
+- [7e27c36](https://github.com/the0neWhoKnocks/password-manager/commit/7e27c36) - Add "clear filter" button
+
+**Bugfixes**
+- [4f5bc80](https://github.com/the0neWhoKnocks/password-manager/commit/4f5bc80) - Server watcher crashes with https
+
+---
+
 ## v2.0.0
 
 **Features**
