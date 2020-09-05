@@ -26,10 +26,19 @@ const checkServer = () => new Promise((rootResolve, rootReject) => {
   const check = () => new Promise((resolve, reject) => {
     setTimeout(() => {
       const serverAddress = `${protocol}://localhost:${ PORT }`;
+      const opts = {};
+      
+      if (protocol === 'https') {
+        // NOTE - Depending on your Dev env, your self-signed certs may
+        // throw this error `UNABLE_TO_VERIFY_LEAF_SIGNATURE` during Server
+        // restart. Not sure why it doesn't happen on start of the Server, but
+        // this will get around that issue (which is fine in development, not Prod).
+        opts.rejectUnauthorized = false;
+      }
       
       console.log(`${ LOG_PREFIX } Pinging ${ serverAddress }`);
       httpModule
-        .get(serverAddress, (res) => resolve(res))
+        .get(serverAddress, opts, (res) => resolve(res))
         .on('error', (err) => reject(err));
     }, 1000);
   });
