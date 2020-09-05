@@ -109,14 +109,12 @@ button:not(:disabled) {
 .labeled-input input:required {
   padding: 0.5em 1.75em 0.5em 0.5em;
 }
-.labeled-input input:required ~ label::after {
-  content: '\2217';
+.labeled-input input:required ~ svg {
   color: #ff7600;
-  font-size: 1.75em;
-  font-weight: bold;
+  font-size: 1em;
   position: absolute;
   top: 50%;
-  right: 0.25em;
+  right: 0.5em;
   transform: translateY(-50%);
 }
 .labeled-input__wrapper {
