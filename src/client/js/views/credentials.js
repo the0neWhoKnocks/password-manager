@@ -131,7 +131,14 @@
             No credentials present. Go to Credentials &gt; Add
           </div>
           <div class="credentials__list">
-            <input class="credentials__filter-input" type="text" placeholder="Filter by Label" />
+            <div class="credentials__filter-input-wrapper">
+              <input class="credentials__filter-input" type="text" placeholder="Filter by Label" />
+              <button class="credentials__clear-filter-btn" title="Clear Filter" disabled>
+                <svg class="svg-icon">
+                  <use xlink:href="#delete" xmlns:xlink="http://www.w3.org/1999/xlink"></use>
+                </svg>
+              </button>
+            </div>
             <div class="credentials__cards"></div>
           </div>
         </div>
@@ -163,6 +170,8 @@
   let loadedCreds;
   let cardsEl;
   let filterStyles;
+  let filterInput;
+  let clearFilterBtn;
   
   function addValueToClipboard(el) {
     const temp = document.createElement('textarea');
@@ -327,8 +336,6 @@
       });
       cardsEl.innerHTML = credsListMarkup;
       
-      const filterInput = credsList.querySelector('.credentials__filter-input');
-      
       cardsEl.removeEventListener('click', handleCredCardClick);
       cardsEl.addEventListener('click', handleCredCardClick);
       
@@ -358,6 +365,8 @@
         loadedCreds = creds;
         renderCards(loadedCreds);
         hideProgressIndicator();
+        
+        filterInput.focus();
       })
       .catch((err) => { alert(err.stack); });
   }
@@ -440,6 +449,8 @@
     credsBody = credentialsEl.querySelector('.credentials__body');
     credsList = credentialsEl.querySelector('.credentials__list');
     cardsEl = credsList.querySelector('.credentials__cards');
+    filterInput = credsList.querySelector('.credentials__filter-input');
+    clearFilterBtn = credsList.querySelector('.credentials__clear-filter-btn');
     
     logoutBtn.addEventListener('click', () => {
       window.utils.storage.clear();
@@ -448,6 +459,14 @@
     
     addCredsBtn.addEventListener('click', () => {
       createAddOrEditCredsDialog();
+    });
+    
+    filterInput.addEventListener('input', (ev) => {
+      clearFilterBtn.disabled = ev.target.value === '';
+    });
+    clearFilterBtn.addEventListener('click', () => {
+      filterInput.value = '';
+      filterInput.dispatchEvent(new Event('input'));
     });
     
     exportCredsBtn.addEventListener('click', () => {
