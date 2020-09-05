@@ -71,6 +71,15 @@ function viewMiddleware({ resp }) {
             </script>
           </head>
           <body>
+            <style>
+              .svg-icon { width: 1em; height: 1em; fill: currentColor; }
+            </style>
+            <svg style="display:none; position:absolute" width="0" height="0">
+              <symbol viewBox="0 0 24 24" id="delete" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.5 16.084L16.097 17.5l-4.09-4.096L7.905 17.5 6.5 16.095l4.093-4.092L6.5 7.905 7.905 6.5l4.088 4.089L16.084 6.5 17.5 7.903l-4.092 4.087 4.092 4.094z"/>
+              </symbol>
+            </svg>
+            
             <script src="/js/app.js"></script>
           </body>
         </html>

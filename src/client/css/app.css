@@ -44,11 +44,13 @@ form button {
   border: none;
   border-radius: 0;
   background: #000;
-  cursor: pointer;
 }
 form button:disabled {
   opacity: 0.5;
-  cursor: default;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
 }
 
 .spinner {
@@ -301,15 +303,34 @@ custom-dialog button {
   align-items: center;
 }
 
+.credentials__filter-input-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
 .credentials__filter-input {
   width: var(--credCardWidth);
   margin-bottom: 3em;
   padding: 1em;
+  padding-right: 3.5em;
   border: solid 1px var(--color__cardBorders);
   box-shadow: 0 0 10px 32px rgb(var(--color__credsBodyBG));
-  position: sticky;
-  top: 0;
-  z-index: 1;
+}
+.credentials__clear-filter-btn {
+  font-size: 1.5em;
+  padding: 0.4em;
+  border: none;
+  background: transparent;
+  position: absolute;
+  right: 0;
+  transition: opacity 300ms;
+}
+.credentials__clear-filter-btn * {
+  pointer-events: none;
+}
+.credentials__clear-filter-btn:disabled {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .credentials__letter-sep {

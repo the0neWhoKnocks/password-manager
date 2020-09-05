@@ -15,6 +15,7 @@ describe('credentials', () => {
   const username = 'John';
   const password = 'seeecret';
   const userData = { username, password };
+  const clickEv = new Event('click', { bubbles: true, cancelable: true });
   const inputEv = new Event('input', { bubbles: true, cancelable: true });
   let creds;
   let credsResp;
@@ -233,6 +234,28 @@ describe('credentials', () => {
         card.click();
         
         expect(item.classList.contains('copied')).toBe(false);
+        
+        done();
+      });
+    });
+    
+    it('should allow for clearing a fitler via a button click', (done) => {
+      loadResolve(credsResp);
+      process.nextTick(() => {
+        const filterInput = credsList.querySelector('.credentials__filter-input');
+        const clearFilterBtn = credsList.querySelector('.credentials__clear-filter-btn');
+        
+        expect(clearFilterBtn.disabled).toBe(true);
+        
+        filterInput.value = 'a';
+        filterInput.dispatchEvent(inputEv);
+        jest.runAllTimers();
+        expect(clearFilterBtn.disabled).toBe(false);
+        
+        clearFilterBtn.dispatchEvent(clickEv);
+        jest.runAllTimers();
+        expect(filterInput.value).toBe('');
+        expect(clearFilterBtn.disabled).toBe(true);
         
         done();
       });
