@@ -17,9 +17,9 @@
     return `
       <div class="labeled-input ${extraClasses}">
         <div class="labeled-input__wrapper">
-          ${(hiddenValue) && `
+          ${hiddenValue ? (`
             <input type="hidden" name="${name}_hidden" value="${hiddenValue}" />
-          `}
+          `) : ''}
           <input
             type="${type}"
             id="${id}"
@@ -30,13 +30,13 @@
             ${disabled ? 'disabled' : ''}
           />
           <label for="${id}">${label}</label>
-          ${required && (`
+          ${required ? (`
             <svg class="svg-icon">
               <use xlink:href="#asterisk" xmlns:xlink="http://www.w3.org/1999/xlink"></use>
             </svg>
-          `)}
+          `) : ''}
         </div>
-        ${helpText && `<p class="help-text">${helpText}</p>`}
+        ${helpText ? `<p class="help-text">${helpText}</p>` : ''}
         ${lowerMarkup}
       </div>
     `;
