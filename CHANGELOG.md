@@ -1,6 +1,14 @@
 # Changelog
 ---
 
+## v2.2.0
+
+**Bugfixes**
+- [166b57a](https://github.com/the0neWhoKnocks/password-manager/commit/166b57a) - "undefined" in "Add" Dialog
+- [c20652f](https://github.com/the0neWhoKnocks/password-manager/commit/c20652f) - Release not created in GH when double quotes in commit message
+
+---
+
 ## v2.1.0
 
 **Features**
