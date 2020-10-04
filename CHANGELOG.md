@@ -1,6 +1,20 @@
 # Changelog
 ---
 
+## v2.2.1
+
+**Dev-Ops**
+- [bdd27a1](https://github.com/the0neWhoKnocks/password-manager/commit/bdd27a1):  Upgraded ESLint
+- [8196718](https://github.com/the0neWhoKnocks/password-manager/commit/8196718):  Added new Release script
+
+**Features**
+- [996429e](https://github.com/the0neWhoKnocks/password-manager/commit/996429e):  Same monospace font for all devices
+
+**Misc. Tasks**
+- [e2aac67](https://github.com/the0neWhoKnocks/password-manager/commit/e2aac67):  Removed unused line
+
+---
+
 ## v2.2.0
 
 **Bugfixes**
