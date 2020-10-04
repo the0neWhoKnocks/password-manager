@@ -9,6 +9,11 @@
   100% { opacity: 0; }
 }
 
+@font-face {
+  font-family: 'MonoFont';
+  src: url('PTMono-Regular.ttf') format('truetype');
+}
+
 :root {
   --credCardWidth: 450px;
   --copiedMsgDuration: 2000ms;
@@ -235,7 +240,7 @@ custom-dialog button {
 .load-progress-indicator__wrapper {
   width: 12em;
   height: 12em;
-  font-family: monospace;
+  font-family: 'MonoFont', monospace;
   border-radius: 100%;
   background: rgb(var(--color__credsBodyBG));
   position: absolute;
@@ -420,7 +425,7 @@ custom-dialog button {
   display: block;
 }
 .credentials-card__list-item-value {
-  font-family: monospace;
+  font-family: 'MonoFont', monospace;
   font-size: 14px;
   text-align: center;
   border-top: dashed 1px var(--color__cardBorders);
@@ -474,7 +479,7 @@ custom-dialog button {
   margin-bottom: 0.25em;
 }
 .creds-form__inputs input {
-  font-family: monospace;;
+  font-family: 'MonoFont', monospace;
 }
 #addCustomCred {
   width: 100%;
