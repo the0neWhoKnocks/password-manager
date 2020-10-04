@@ -6,7 +6,13 @@ module.exports = {
     node: true,
   },
   extends: 'eslint:recommended',
+  ignorePatterns: [
+    '/bin/release.js',
+  ],
   parserOptions: {
     ecmaVersion: 2019,
   },
+  rules: {
+    'require-atomic-updates': 'off',
+  }
 };
