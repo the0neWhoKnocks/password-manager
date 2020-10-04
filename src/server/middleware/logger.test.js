@@ -2,7 +2,6 @@ jest.mock('debug');
 const debugModule = require('debug');
 
 const url = require('url');
-const { ROOT_NAMESPACE } = require('../utils/logger');
 const middleware = require('./logger');
 
 describe('logger', () => {
