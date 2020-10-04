@@ -1,6 +1,6 @@
 # Files
 .DS_Store
-.dockercreds
+.creds-docker
 *.log
 *.patch
 creds-backup-*
