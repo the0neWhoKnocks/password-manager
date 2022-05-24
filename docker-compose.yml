@@ -1,7 +1,7 @@
 version: "3.4"
 
 services:
-  "password-manager":
+  password-manager:
     build:
       context: ./
       dockerfile: Dockerfile
@@ -13,5 +13,5 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - "${PWD}/certs.localhost:/home/node/app/certs"
+      - "${PWD}/certs:/home/node/app/certs"
       - "${PWD}/data:/home/node/app/data"
