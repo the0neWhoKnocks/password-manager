@@ -99,7 +99,7 @@ const parseArgs = ({ desc, flags }) => {
     desc: 'Prints out script options and usage.',
   });
   
-  while(rawArgs.length) {
+  while (rawArgs.length) {
     const currArg = rawArgs[0];
     
     if (/^--?/.test(currArg)) currProp = undefined;
@@ -135,7 +135,7 @@ const parseArgs = ({ desc, flags }) => {
       const descWords = desc.split(/\s/);
       let lineNdx = 0;
       
-      descWords.forEach((word, ndx) => {
+      descWords.forEach((word) => {
         let line = lines[lineNdx];
         if (((line + word).length + MIN_DOTS + LEADING_SPACE.length) > TERMINAL_WIDTH) {
           lineNdx++;
@@ -353,10 +353,22 @@ class CLISelect {
   const HAS_TEST_SCRIPT = PACKAGE_JSON.scripts && PACKAGE_JSON.scripts.test;
   if (HAS_TEST_SCRIPT) {
     renderHeader('RUN', 'tests');
-    const testCmd = `cd ${PATH__REPO_ROOT} && npm test`;
-    (args.dryRun)
-      ? dryRunCmd(testCmd)
-      : await cmd(testCmd, { silent: false });
+    
+    const runTests = await new CLISelect({
+      label: color.yellow.bold('Run tests, or skip?'),
+      options: [
+        [color.green.bold('Yes, run tests'), true],
+        [color.red.bold('Nah, skip tests'), false],
+      ],
+      selectedMsg: null,
+    });
+    
+    if (runTests) {
+      const testCmd = `cd ${PATH__REPO_ROOT} && npm test`;
+      (args.dryRun)
+        ? dryRunCmd(testCmd)
+        : await cmd(testCmd, { silent: false });
+    }
   }
   
   if (latestTagOrSHA) {
@@ -381,14 +393,33 @@ class CLISelect {
     
     try {
       const TITLE_PREFIX = ': ';
+      const COMMIT_TITLE_REGEX = / (?<type>chore|feat|fix|ops|task):(?:[\w\d-_]+)?( -)? /i;
       commits.split('\n')
         .map(commit => commit.replace(/^([a-z0-9]+)\s/i, `- [$1](${REPO_URL}/commit/$1) `))
         .forEach(commit => {
-          if (commit.includes(' fix: ')) categories['Bugfixes'].push(commit.replace(' fix:', TITLE_PREFIX));
-          else if (commit.includes(' ops: ')) categories['Dev-Ops'].push(commit.replace(' ops:', TITLE_PREFIX));
-          else if (commit.includes(' feat: ')) categories['Features'].push(commit.replace(' feat:', TITLE_PREFIX));
-          else if (commit.includes(' chore: ')) categories['Misc. Tasks'].push(commit.replace(' chore:', TITLE_PREFIX));
-          else categories['Uncategorized'].push(commit);
+          if (COMMIT_TITLE_REGEX.test(commit)) {
+            const m = commit.match(COMMIT_TITLE_REGEX) || { groups: {} };
+            const { groups: { type } } = m;
+            
+            switch (type) {
+              case 'fix':
+                categories['Bugfixes'].push(commit.replace(m[0], TITLE_PREFIX));
+                break;
+              case 'ops':
+                categories['Dev-Ops'].push(commit.replace(m[0], TITLE_PREFIX));
+                break;
+              case 'feat':
+                categories['Features'].push(commit.replace(m[0], TITLE_PREFIX));
+                break;
+              case 'chore':
+              case 'task':
+                categories['Misc. Tasks'].push(commit.replace(m[0], TITLE_PREFIX));
+                break;
+            }
+          }
+          else {
+            categories['Uncategorized'].push(commit);
+          }
         });
       
       newChanges = Object.keys(categories)
@@ -401,7 +432,7 @@ class CLISelect {
         .filter(category => !!category)
         .join('\n\n');
     }
-    catch (err) { handleError(1, "Couldn't parse commit messages"); }
+    catch (err) { handleError(1, `Couldn't parse commit messages:\n${err}`); }
     
     // Add changes to top of logs
     const originalLog = readFileSync(CHANGELOG_PATH, 'utf8');
@@ -516,7 +547,10 @@ class CLISelect {
     }
     
     renderHeader('GIT_TAG', 'the release');
-    const GIT_CHANGELOG_MSG = `## ${VERSION_STR}\n\n${newChanges}`.replace(/"/g, '\\"');
+    const escapedNewChanges = newChanges
+      .replace(/"/g, '\\"')
+      .replace(/`/g, '\\`');
+    const GIT_CHANGELOG_MSG = `## ${VERSION_STR}\n\n${escapedNewChanges}`;
     const GIT_TAG_CMD = `git tag -a "${VERSION_STR}" -m "${GIT_CHANGELOG_MSG}"`;
     if (args.dryRun) dryRunCmd(GIT_TAG_CMD);
     else {
@@ -530,13 +564,29 @@ class CLISelect {
     
     let DOCKER_USER, DOCKER_PASS, DOCKER_TAG;
     if (PATH__CREDS__DOCKER) {
-      [DOCKER_USER, DOCKER_PASS] = readFileSync(PATH__CREDS__DOCKER, 'utf8').split('\n');
+      try {
+        [DOCKER_USER, DOCKER_PASS] = readFileSync(PATH__CREDS__DOCKER, 'utf8').split('\n');
+      }
+      catch (err) {
+        await rollbackRelease();
+        console.log('');
+        throw err;
+      }
+      
       const LATEST_REGEX = new RegExp(`^${DOCKER__IMG_NAME}.*latest`);
       const LATEST_ID = (await cmd('docker images')).split('\n').filter(line => LATEST_REGEX.test(line)).map(line => line.split(/\s+/)[2])[0];
       
       if (args.dryRun && !args.showCreds) {
         DOCKER_USER = '******';
         DOCKER_PASS = '******';
+      }
+      
+      if (
+        DOCKER_USER === '<dockerUsername>'
+        || DOCKER_PASS === '<dockerPassword>'
+      ) {
+        await rollbackRelease();
+        throw Error(`Default Docker credentials detected, you need to update '.creds-docker'`);
       }
       
       DOCKER_TAG = `${DOCKER__IMG_NAME}:${VERSION_STR}`;
@@ -573,17 +623,19 @@ class CLISelect {
           onError: rollbackRelease,
           silent: false,
         });
+        rollbacks.push({ label: 'Pushed Git tag', cmd: `git push --delete origin "${VERSION_STR}"` });
       }
       
       renderHeader('PUSH', 'Docker tags');
       const DOCKER_PUSH_CMD =
-          `docker login -u="${DOCKER_USER}" -p="${DOCKER_PASS}"`
+          `echo "${DOCKER_PASS}" | docker login -u="${DOCKER_USER}" --password-stdin`
         +` && docker push "${DOCKER_TAG}"`
         +` && docker push "${DOCKER__IMG_NAME}:latest"`;
       if (args.dryRun) dryRunCmd(DOCKER_PUSH_CMD);
       else {
         await cmd(DOCKER_PUSH_CMD, {
           cwd: PATH__REPO_ROOT,
+          onError: rollbackRelease,
           silent: false,
         });
       }
@@ -628,7 +680,10 @@ class CLISelect {
             );
             dryRunCmd(CURL_CMD);
           }
-          else await cmd(CURL_CMD, { silent: false });
+          else await cmd(CURL_CMD, {
+            onError: rollbackRelease,
+            silent: false,
+          });
         }
         else {
           console.log(`\n ${color.black.bgYellow(' WARN ')} ${color.yellow("Couldn't parse the origin URL for GH release creation")}`);
