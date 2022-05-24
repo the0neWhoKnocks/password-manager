@@ -8,7 +8,7 @@ creds-backup-*
 # Folders
 .ignore
 assets
-certs.*
+certs*
 data
 node_modules
 reports
