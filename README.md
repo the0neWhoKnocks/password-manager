@@ -91,6 +91,9 @@ npm i
 npm start
 # or for Dev (starts a BrowserSync & Nodemon watcher)
 npm run start:dev
+
+# with https
+NODE_EXTRA_CA_CERTS="${PWD}/certs/localhost.crt" npm run start:dev
 ```
 
 **Via Docker**
