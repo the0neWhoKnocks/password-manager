@@ -6,31 +6,33 @@ const encrypt = require('./encrypt');
 const getUsersCredentialsPath = require('./getUsersCredentialsPath');
 const loadUsersCredentials = require('./loadUsersCredentials');
 
-module.exports = function loadCreds({ appConfig, req, resp }) {
-  parseReq(req)
-    .then(async ({ username, password }) => {
-      const encryptedUsername = (await encrypt(appConfig, username)).value;
-      const filePath = getUsersCredentialsPath(encryptedUsername);
-      const loadedCreds = await loadUsersCredentials(filePath);
+module.exports = async function loadCreds({ appConfig, req, resp }) {
+  try {
+    const { username, password } = await parseReq(req);
+    const encryptedUsername = (await encrypt(appConfig, username)).value;
+    const filePath = getUsersCredentialsPath(encryptedUsername);
+    const loadedCreds = await loadUsersCredentials(filePath);
+    
+    if (typeof loadedCreds === 'string') {
+      const decrypted = (loadedCreds) // could be blank on first run
+        ? JSON.parse(await decrypt(appConfig, loadedCreds, password))
+        : [];
       
-      if (typeof loadedCreds === 'string') {
-        decrypt(appConfig, loadedCreds, password)
-          .then((decrypted) => {
-            returnResp({
-              data: { creds: JSON.parse(decrypted) },
-              prefix: 'DECRYPTED',
-              label: 'User data',
-              resp,
-            });
-          })
-          .catch(returnErrorResp({ label: 'Load Creds decryption failed', resp }));
-      }
-      else {
-        returnResp({
-          data: { creds: loadedCreds },
-          resp,
-        });
-      }
-    })
-    .catch(returnErrorResp({ label: 'Load Creds request parse failed', resp }));
+      returnResp({
+        data: { creds: decrypted },
+        prefix: 'DECRYPTED',
+        label: 'User data',
+        resp,
+      });
+    }
+    else {
+      returnResp({
+        data: { creds: loadedCreds },
+        resp,
+      });
+    }
+  }
+  catch (err) {
+    returnErrorResp({ label: 'Load Creds request parse failed', resp })(err);
+  }
 }

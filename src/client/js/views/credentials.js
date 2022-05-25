@@ -354,21 +354,21 @@
     }
   }
   
-  function loadCredentials() {
+  async function loadCredentials() {
     showProgressIndicator();
     
-    window.utils.postData(
-      '/api/user/creds/load',
-      window.utils.storage.get('userData'),
-    )
-      .then(({ creds }) => {
-        loadedCreds = creds;
-        renderCards(loadedCreds);
-        hideProgressIndicator();
-        
-        filterInput.focus();
-      })
-      .catch((err) => { alert(err.stack); });
+    try {
+      const { creds } = await window.utils.postData(
+        '/api/user/creds/load',
+        window.utils.storage.get('userData')
+      );
+      loadedCreds = creds;
+      
+      renderCards(loadedCreds);
+      hideProgressIndicator();
+      filterInput.focus();
+    }
+    catch (err) { alert(err.error || err.stack); }
   }
   
   function createAddOrEditCredsDialog(currentData, ndx) {
@@ -392,21 +392,23 @@
     inputCreator.classList.add(MODIFIER__HIDDEN);
     
     credsForm.addEventListener('submit', (ev) => {
+    credsForm.addEventListener('submit', async (ev) => {
       ev.preventDefault();
       
-      const formData = window.utils.serializeForm(credsForm);
-      
-      window.utils.postData(credsForm.action, formData)
-        .then((credsData) => {
-          const { credsNdx } = formData;
-          
-          if (credsNdx !== undefined) loadedCreds[credsNdx] = credsData;
-          else loadedCreds.push(credsData);
-          
-          renderCards(loadedCreds);
-          credentialsDialog.close();
-        })
-        .catch(({ error }) => { alert(error); });
+      try {
+        const formData = window.utils.serializeForm(credsForm);
+        const credsData = await window.utils.postData(credsForm.action, formData);
+        const { credsNdx } = formData;
+        
+        if (credsNdx !== undefined) loadedCreds[credsNdx] = credsData;
+        else loadedCreds.push(credsData);
+        
+        renderCards(loadedCreds);
+        credentialsDialog.close();
+      }
+      catch (err) {
+        alert(err.error || err.stack);
+      }
     });
     addCustomCredBtn.addEventListener('click', () => {
       addCustomCredBtn.classList.add(MODIFIER__HIDDEN);
@@ -434,7 +436,7 @@
     return credentialsDialog;
   }
   
-  window.showCredentials = function showCredentials() {
+  window.showCredentials = async function showCredentials() {
     document.body.insertAdjacentHTML('beforeend', templates.view());
     
     credentialsEl = document.querySelector('.credentials');
@@ -486,29 +488,25 @@
       });
     });
     
-    importCredsBtn.addEventListener('click', () => {
-      const { username, password } = window.utils.storage.get('userData');
-      
-      window.utils.loadFile({
-        onFileAdd: () => {
-          showProgressIndicator();
-        },
-      }).then((data) => {
-        const payload = {
-          creds: JSON.parse(data).creds,
-          user: { username, password },
-        };
+    importCredsBtn.addEventListener('click', async () => {
+      try {
+        const { username, password } = window.utils.storage.get('userData');
+        const loadedData = await window.utils.loadFile({
+          onFileAdd: showProgressIndicator,
+        });
         
-        window.utils.postData(
-          '/api/user/creds/import',
-          payload,
-        )
-          .then(({ error }) => {
-            if (error) alert(error);
-            else loadCredentials();
-          })
-          .catch((err) => { alert(err.stack); });
-      });
+        await window.utils.postData('/api/user/creds/import', {
+          creds: JSON.parse(loadedData).creds,
+          user: { username, password },
+        });
+        
+        await loadCredentials();
+      }
+      catch (err) {
+        const _err = err.error || err.stack;
+        alert(_err);
+        hideProgressIndicator();
+      }
     });
     
     deleteUserBtn.addEventListener('click', () => {
@@ -532,7 +530,7 @@
       });
     });
     
-    updateUserBtn.addEventListener('click', () => {
+    updateUserBtn.addEventListener('click', async () => {
       const {
         username: currentUsername,
         password: currentPassword,
@@ -569,22 +567,25 @@
         submitBtn: form.querySelector('[value="update"]'),
       });
       
-      form.addEventListener('submit', (ev) => {
+      form.addEventListener('submit', async (ev) => {
         ev.preventDefault();
         
-        window.utils.postData(form.action, form)
-          .then(({ username, password }) => {
-            window.utils.storage.set({ userData: { username, password } });
-            loadCredentials();
-            dialog.close();
-          })
-          .catch(({ error }) => { alert(error); });
+        try {
+          const { username, password } = await window.utils.postData(form.action, form);
+          
+          window.utils.storage.set({ userData: { username, password } });
+          await loadCredentials();
+          dialog.close();
+        }
+        catch (err) {
+          alert(err.error || err.stack);
+        }
       });
       cancelBtn.addEventListener('click', () => {
         dialog.close();
       });
     });
     
-    loadCredentials();
+    await loadCredentials();
   }
 })();
