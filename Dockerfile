@@ -1,5 +1,5 @@
 # Preparation
-FROM node:10-alpine as passman-prep
+FROM node:14-alpine as passman-prep
 COPY --chown=node:node ./package*.json ./
 # Create a temporary package.json where things like `version` and `scripts`
 # are omitted so the cache of the build step won't be invalidated.
@@ -22,7 +22,7 @@ RUN ["node", "-e", " \
 "]
 
 # Setup the environment
-FROM node:10-alpine AS release
+FROM node:14-alpine AS release
 ENV NODE_ENV=production
 ENV APP=/home/node/app
 RUN mkdir -p $APP/node_modules && chown -R node:node /home/node/*
