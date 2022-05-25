@@ -23,19 +23,19 @@
   "author": "Trevor Lemon",
   "license": "MIT",
   "dependencies": {
-    "debug": "^4.1.1",
-    "etag": "^1.8.1",
-    "glob": "^7.1.6",
-    "mime-types": "^2.1.27",
-    "mkdirp": "^1.0.4"
+    "debug": "4.3.4",
+    "etag": "1.8.1",
+    "glob": "8.0.3",
+    "mime-types": "2.1.35",
+    "mkdirp": "1.0.4"
   },
   "devDependencies": {
-    "browser-sync": "^2.26.7",
-    "cli-color": "^2.0.0",
-    "concurrently": "^5.2.0",
-    "eslint": "^6.7.0",
-    "jest": "^26.1.0",
-    "jest-localstorage-mock": "^2.4.2",
-    "nodemon": "^2.0.4"
+    "browser-sync": "2.27.10",
+    "cli-color": "2.0.2",
+    "concurrently": "7.2.1",
+    "eslint": "8.16.0",
+    "jest": "28.1.0",
+    "jest-localstorage-mock": "2.4.21",
+    "nodemon": "2.0.16"
   }
 }
