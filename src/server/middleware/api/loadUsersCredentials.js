@@ -6,7 +6,7 @@ const loadUsersCredentials = (filePath) => new Promise((resolve) => {
       resolve(JSON.parse(data));
     });
   }
-  else resolve([]);
+  else resolve('');
 });
 
 module.exports = loadUsersCredentials;
