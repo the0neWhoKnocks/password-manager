@@ -110,6 +110,12 @@ button:not(:disabled) {
   width: var(--labeled-input__input-width, auto);
   padding: 0.5em;
   margin-left: 0.5em;
+  border: solid 1px;
+  border-radius: 0.25em;
+}
+.labeled-input input:is(:focus, :focus-visible) {
+  outline: solid 2px;
+  outline-offset: -2px;
 }
 .labeled-input input:required {
   padding: 0.5em 1.75em 0.5em 0.5em;
@@ -129,6 +135,22 @@ button:not(:disabled) {
   flex-wrap: wrap;
   flex-direction: row-reverse;
   position: relative;
+}
+.labeled-input__deletable {
+  width: var(--labeled-input__input-width, auto);
+  margin-left: 0.5em;
+  display: flex;
+}
+.labeled-input__deletable input {
+  border-radius: 0.25em 0 0 0.25em;
+  margin: 0;
+}
+.labeled-input__deletable button {
+  border-radius: 0 0.25em 0.25em 0;
+  transition: background-color 300ms;
+}
+.labeled-input__deletable button:hover {
+  background-color: #7e0e3e;
 }
 
 #createConfig {
@@ -156,7 +178,6 @@ custom-dialog button {
   border: none;
   border-radius: 0.25em;
   background: #000;
-  cursor: pointer;
 }
 
 .doors {
@@ -453,7 +474,6 @@ custom-dialog button {
   padding: 0.5em;
   border: none;
   background: transparent;
-  cursor: pointer;
 }
 .credentials-card__ui button:hover {
   color: #fff;
@@ -467,7 +487,9 @@ custom-dialog button {
 }
 
 .creds-form {
+  --labeled-input__delete-btn-width: 2em;
   --labeled-input__input-width: 270px;
+  
   padding: 1em;
 }
 .creds-form__inputs {
