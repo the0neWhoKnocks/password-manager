@@ -1,6 +1,7 @@
 (() => {
   const genUniqueId = (txt) => btoa(`cli_${txt}`).replace(/=/g, '');
   const labeledInput = ({
+    deletable,
     disabled,
     extraClasses = '',
     helpText = '',
@@ -14,21 +15,29 @@
     value = '',
   } = {}) => {
     const id = genUniqueId(name);
+    const input = `
+      <input
+        type="${type}"
+        id="${id}"
+        ${name ? `name="${name}"` : ''}
+        ${placeholder ? `placeholder="${placeholder}"` : ''}
+        ${value ? `value="${value}"` : ''}
+        ${required ? 'required' : ''}
+        ${disabled ? 'disabled' : ''}
+      />
+    `;
     return `
       <div class="labeled-input ${extraClasses}">
         <div class="labeled-input__wrapper">
           ${hiddenValue ? (`
             <input type="hidden" name="${name}_hidden" value="${hiddenValue}" />
           `) : ''}
-          <input
-            type="${type}"
-            id="${id}"
-            ${name ? `name="${name}"` : ''}
-            ${placeholder ? `placeholder="${placeholder}"` : ''}
-            ${value ? `value="${value}"` : ''}
-            ${required ? 'required' : ''}
-            ${disabled ? 'disabled' : ''}
-          />
+          ${deletable ? (`
+            <div class="labeled-input__deletable">
+              ${input}
+              <button type="button" value="deleteInput">✕</button>
+            </div>
+          `) : input}
           <label for="${id}">${label}</label>
           ${required ? (`
             <svg class="svg-icon">

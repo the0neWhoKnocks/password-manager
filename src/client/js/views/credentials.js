@@ -48,6 +48,7 @@
     customField: ({ hiddenValue, label, value }) => {
       templates.customFieldsCount += 1;
       return window.templates.labeledInput({
+        deletable: true,
         hiddenValue,
         label,
         name: `customField_${templates.customFieldsCount}`,
@@ -247,19 +248,27 @@
     const startData = window.utils.serializeForm(form);
     let tO;
     
+    const diff = () => {
+      if (JSON.stringify(startData) !== JSON.stringify(window.utils.serializeForm(form))) {
+        submitBtn.removeAttribute('disabled');
+      }
+      else {
+        submitBtn.setAttribute('disabled', '');
+      }
+    };
+    
     submitBtn.setAttribute('disabled', '');
     
     form.addEventListener('input', () => {
       if (tO) clearTimeout(tO);
-      tO = setTimeout(() => {
-        if (JSON.stringify(startData) !== JSON.stringify(window.utils.serializeForm(form))) {
-          submitBtn.removeAttribute('disabled');
-        }
-        else {
-          submitBtn.setAttribute('disabled', '');
-        }
-      }, 300);
+      tO = setTimeout(diff, 300);
     });
+    
+    const observer = new MutationObserver((mutationList) => {
+      const itemRemoved = mutationList.find(({ removedNodes, type }) => type === 'childList' && removedNodes.length);
+      if (itemRemoved) diff();
+    });
+    observer.observe(form, { subtree: true, childList: true });
   }
   
   function handleCredCardClick(ev) {
@@ -273,7 +282,7 @@
         const ndx = currEl.dataset.ndx;
         const dialog = createAddOrEditCredsDialog(loadedCreds[ndx], ndx);
         const form = dialog.querySelector('.creds-form');
-        const submitBtn = form.querySelector('button');
+        const submitBtn = form.querySelector('button:not([type="button"])');
         
         debounceAndDiff({ form, submitBtn });
       }
@@ -391,7 +400,24 @@
     
     inputCreator.classList.add(MODIFIER__HIDDEN);
     
-    credsForm.addEventListener('submit', (ev) => {
+    credsForm.addEventListener('click', ({ target }) => {
+      if (target.value === 'deleteInput') {
+        target.closest('.labeled-input').remove();
+        templates.customFieldsCount = 0;
+        
+        [...credsForm.querySelectorAll('.labeled-input')].forEach((liEl) => {
+          const cFs = [...liEl.querySelectorAll('[name*="customField_"]')];
+          
+          if (cFs.length) {
+            templates.customFieldsCount += 1;
+            
+            cFs.forEach((el) => {
+              el.name = el.name.replace(/customField_(\d+)/, `customField_${templates.customFieldsCount}`);
+            });
+          }
+        });
+      }
+    });
     credsForm.addEventListener('submit', async (ev) => {
       ev.preventDefault();
       
