@@ -1,6 +1,26 @@
 # Changelog
 ---
 
+## v2.3.0
+
+**Bugfixes**
+- [4478308](https://github.com/the0neWhoKnocks/password-manager/commit/4478308): Errors when adding for the first time
+
+**Dev-Ops**
+- [b34f675](https://github.com/the0neWhoKnocks/password-manager/commit/b34f675): Swapped out Jest for Cypress for testing
+- [8155e15](https://github.com/the0neWhoKnocks/password-manager/commit/8155e15): Updated dependencies
+- [365e120](https://github.com/the0neWhoKnocks/password-manager/commit/365e120): Updated to Node 14 for Docker
+- [c345526](https://github.com/the0neWhoKnocks/password-manager/commit/c345526): Updated compose file
+- [fab6706](https://github.com/the0neWhoKnocks/password-manager/commit/fab6706): Updated release script
+
+**Features**
+- [ed2840a](https://github.com/the0neWhoKnocks/password-manager/commit/ed2840a): Ability to delete custom credential fields
+
+**Uncategorized**
+- [6f32a3c](https://github.com/the0neWhoKnocks/password-manager/commit/6f32a3c) doc: Added example of how to run with HTTPS
+
+---
+
 ## v2.2.1
 
 **Dev-Ops**
