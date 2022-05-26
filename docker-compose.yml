@@ -8,10 +8,32 @@ services:
     container_name: password-manager
     image: theonewhoknocks/password-manager
     environment:
+      DATA_PATH: /home/node/app/data
       NODE_ENV: production
       NODE_EXTRA_CA_CERTS: /home/node/app/certs/localhost.crt
     ports:
       - "3000:3000"
     volumes:
       - "${PWD}/certs:/home/node/app/certs"
-      - "${PWD}/data:/home/node/app/data"
+      - "${PWD}/e2e/mnt/data:/home/node/app/data"
+  
+  e2e-cypress:
+    container_name: e2e-passman
+    depends_on:
+      - password-manager
+    environment:
+      ## Cypress vars
+      CYPRESS_BASE_URL: "${CYPRESS_BASE_URL}"
+      # DEBUG: cypress:server:browsers:electron # view Electron internal logging
+      # ELECTRON_ENABLE_LOGGING: 1 # view console logs from Browser (headless)
+    hostname: cypresstests
+    image: cypress/included:9.3.0
+    ipc: host # https://github.com/cypress-io/cypress/issues/350#issuecomment-267704772
+    ports:
+      - "9001:3000"
+    privileged: true
+    user: "${CURR_UID}:${CURR_GID}"
+    working_dir: /repo/e2e
+    volumes:
+      - "${PWD}/e2e:/repo/e2e"
+      - "${PWD}/e2e/mnt/data:/repo/e2e/cypress/fixtures"

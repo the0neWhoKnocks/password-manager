@@ -2,11 +2,9 @@
   <img src="./src/client/imgs/icons/android-chrome-192x192.png" height="25" alt="logo"> Password Manager
 </h1>
 
-[![Travis (.com) branch](https://img.shields.io/travis/the0neWhoKnocks/password-manager/master?style=for-the-badge)](https://travis-ci.org/github/the0neWhoKnocks/password-manager/builds)
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/the0neWhoKnocks/password-manager?sort=semver&style=for-the-badge)](https://github.com/the0neWhoKnocks/password-manager/releases)
 [![DockerHub](https://img.shields.io/static/v1?label=Docker&message=Hub&color=blue&style=for-the-badge&logo=docker)](https://hub.docker.com/repository/docker/theonewhoknocks/password-manager)
 ![GitHub](https://img.shields.io/github/license/the0neWhoKnocks/password-manager?color=%237ea01a&style=for-the-badge)
-[![Codecov branch](https://img.shields.io/codecov/c/github/the0neWhoKnocks/password-manager/master?style=for-the-badge)](https://codecov.io/gh/the0neWhoKnocks/password-manager/branch/)
 
 A Password Manager designed to be run over your LAN.
 
