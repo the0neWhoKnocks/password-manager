@@ -521,12 +521,14 @@
           onFileAdd: showProgressIndicator,
         });
         
-        await window.utils.postData('/api/user/creds/import', {
-          creds: JSON.parse(loadedData).creds,
-          user: { username, password },
-        });
-        
-        await loadCredentials();
+        if (loadedData) {
+          await window.utils.postData('/api/user/creds/import', {
+            creds: JSON.parse(loadedData).creds,
+            user: { username, password },
+          });
+          
+          await loadCredentials();
+        }
       }
       catch (err) {
         const _err = err.error || err.stack;

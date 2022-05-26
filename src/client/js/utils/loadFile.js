@@ -17,7 +17,20 @@ function loadFile({ onFileAdd } = {}) {
     fileInput.type = 'file';
     fileInput.accept = '.json';
     
+    // NOTE: this is just for tests since it needs an element in the DOM
+    fileInput.id = 'tmpFileInput';
+    fileInput.style = 'position: absolute; top: -100%; left: 0;';
+    document.body.appendChild(fileInput);
+    const cancelHandler = () => {
+      window.removeEventListener('focus', cancelHandler);
+      fileInput.remove();
+      resolve();
+    };
+    window.addEventListener('focus', cancelHandler);
+    
     fileInput.addEventListener('change', (ev) => {
+      window.removeEventListener('focus', cancelHandler);
+      
       const importedFile = ev.target.files[0];
       const reader = new FileReader();
       
@@ -25,6 +38,7 @@ function loadFile({ onFileAdd } = {}) {
       
       reader.addEventListener('load', (readEv) => {
         const content = readEv.target.result;
+        fileInput.remove();
         resolve(content);
       });
       reader.readAsText(importedFile);

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XLaunch
+  ClientMode="NoClient"
+  Clipboard="True"
+  ClipboardPrimary="True"
+  DisableAC="True"
+  Display="0"
+  ExtraParams=""
+  LocalClient="False"
+  LocalProgram="xcalc"
+  PrivateKey=""
+  RemoteHost=""
+  RemotePassword=""
+  RemoteProgram="xterm"
+  RemoteUser=""
+  Wgl="True"
+  WindowMode="MultiWindow"
+  XDMCPBroadcast="False"
+  XDMCPHost=""
+  XDMCPIndirect="False"
+  XDMCPTerminate="False"
+/>
