@@ -14,8 +14,12 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - "${PWD}/certs:/home/node/app/certs"
-      - "${PWD}/e2e/mnt/data:/home/node/app/data"
+      - type: bind
+        source: "${PWD}/certs"
+        target: "/home/node/app/certs"
+      - type: bind
+        source: "${PWD}/e2e/mnt/data"
+        target: "/home/node/app/data"
   
   e2e-cypress:
     container_name: e2e-passman
@@ -36,4 +40,6 @@ services:
     working_dir: /repo/e2e
     volumes:
       - "${PWD}/e2e:/repo/e2e"
-      - "${PWD}/e2e/mnt/data:/repo/e2e/cypress/fixtures"
+      - type: bind
+        source: "${PWD}/e2e/mnt/data"
+        target: "/repo/e2e/cypress/fixtures"
