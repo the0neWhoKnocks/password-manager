@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { existsSync, readFileSync, writeFileSync } = require('fs');
+const { access, lstat, readFile, readlink, writeFile } = require('fs/promises');
 
 // Boilerplate =================================================================
 
@@ -260,6 +260,16 @@ class CLISelect {
 
 // Script specific =============================================================
 
+const fileExists = async (path) => {
+  try { await access(path); return true; }
+  catch { return false; }
+};
+
+const isSymbolic = async (path) => {
+  const stats = await lstat(path);
+  return stats.isSymbolicLink();
+};
+
 (async function release() {
   const {
     APP__TEST_URL,
@@ -269,6 +279,8 @@ class CLISelect {
     DOCKER__IMG_NAME,
     PATH__CREDS__DOCKER,
     PATH__REPO_ROOT,
+    REPO__API_URL,
+    REPO__HOST,
   } = require('./release-config.js');
   const PACKAGE_JSON = require(`${PATH__REPO_ROOT}/package.json`);
   const args = parseArgs({
@@ -288,6 +300,20 @@ class CLISelect {
   });
   let newChanges;
   
+  const REPO_HOSTS = {
+    GITEA: 'gitea',
+    GITHUB: 'github',
+  };
+  const acceptableRepoHosts = Object.values(REPO_HOSTS);
+  if (!REPO__HOST || !acceptableRepoHosts.includes(REPO__HOST)) {
+    const msg = [
+      'Your config does not have an acceptable value for "REPO__HOST"',
+      `Acceptable values are: ${acceptableRepoHosts.join(', ')}`,
+      'You may also want to fill out "REPO__API_URL"',
+    ];
+    handleError(1, msg.join('\n'));
+  }
+  
   let rollbacks = [];
   async function rollbackRelease() {
     if (rollbacks.length) {
@@ -296,7 +322,7 @@ class CLISelect {
       for (let i=rollbacks.length - 1; i>=0; i--) {
         const { cmd: _cmd, content, file, label } = rollbacks[i];
         if (_cmd) await cmd(_cmd, { cwd: PATH__REPO_ROOT });
-        else if (file) writeFileSync(file, content);
+        else if (file) await writeFile(file, content);
         
         console.log(` - Reverted: ${color.blue.bold(label)}`);
       }
@@ -311,10 +337,20 @@ class CLISelect {
 
   // Get current version number
   const ORIGINAL_VERSION = PACKAGE_JSON.version;
-  const REPO_URL = (await cmd('git config --get remote.origin.url'))
-    .replace(/^git@/, 'https://')
-    .replace('.com:', '.com/')
-    .replace(/\.git$/, '');
+  const REMOTE_ORIGIN_URL = await cmd('git config --get remote.origin.url');
+  // The lookup is based on the assumption that the URLs end with `<USER>/<REPO>.git`.
+  // Tested against:
+  // - https://<HOSTNAME>/<USER>/<REPO>.git
+  // - ssh://git@<HOSTNAME>:<PORT>/<USER>/<REPO>.git
+  // - git@<HOSTNAME>:<USER>/<REPO>.git
+  const gitOriginURLParts = REMOTE_ORIGIN_URL.match(/.*(\/|:)(?<repoUser>[^/:]+)\/(?<repoName>.+?(?=\.git))\.git$/);
+  let repoName, repoUser;
+  if (gitOriginURLParts) {
+    ({ repoName, repoUser } = gitOriginURLParts.groups);
+  }
+  else {
+    handleError(1, "Could not parse your repo's origin URL");
+  }
   // Build out what the version would be based on what the user chooses
   const VERSION_NUMS = ORIGINAL_VERSION.split('.');
   const MAJOR = `${+VERSION_NUMS[0] + 1}.0.0`;
@@ -377,8 +413,8 @@ class CLISelect {
     const CHANGELOG_PATH = `${PATH__REPO_ROOT}/CHANGELOG.md`;
     const DEFAULT_CHANGELOG_CONTENT = '# Changelog\n---\n';
     
-    if (!existsSync(CHANGELOG_PATH)) {
-      writeFileSync(CHANGELOG_PATH, DEFAULT_CHANGELOG_CONTENT);
+    if ( !(await fileExists(CHANGELOG_PATH)) ) {
+      await writeFile(CHANGELOG_PATH, DEFAULT_CHANGELOG_CONTENT);
     }
 
     // const commits = await cmd('git log "v3.1.0".."v4.0.0" --oneline');
@@ -395,7 +431,7 @@ class CLISelect {
       const TITLE_PREFIX = ': ';
       const COMMIT_TITLE_REGEX = / (?<type>chore|feat|fix|ops|task):(?:[\w\d-_]+)?( -)? /i;
       commits.split('\n')
-        .map(commit => commit.replace(/^([a-z0-9]+)\s/i, `- [$1](${REPO_URL}/commit/$1) `))
+        .map(commit => commit.replace(/^([a-z0-9]+)\s/i, `- [$1](/${repoUser}/${repoName}/commit/$1) `))
         .forEach(commit => {
           if (COMMIT_TITLE_REGEX.test(commit)) {
             const m = commit.match(COMMIT_TITLE_REGEX) || { groups: {} };
@@ -426,7 +462,7 @@ class CLISelect {
         .map(category => {
           const categoryItems = categories[category];
           return (categoryItems.length)
-            ? `**${category}**\n${categoryItems.join('\n')}`
+            ? `  **${category}**\n  ${categoryItems.join('\n  ')}`
             : null;
         })
         .filter(category => !!category)
@@ -435,9 +471,9 @@ class CLISelect {
     catch (err) { handleError(1, `Couldn't parse commit messages:\n${err}`); }
     
     // Add changes to top of logs
-    const originalLog = readFileSync(CHANGELOG_PATH, 'utf8');
+    const originalLog = await readFile(CHANGELOG_PATH, 'utf8');
     if (newChanges) {
-      const newLog = `\n## ${VERSION_STR}\n\n${newChanges}\n\n---\n`;
+      const newLog = `\n## ${VERSION_STR}\n\n<details>\n  <summary>Expand for ${VERSION_STR} Details</summary>\n\n${newChanges}\n</details>\n\n---\n`;
       const changelog = originalLog.replace(
         new RegExp(`(${DEFAULT_CHANGELOG_CONTENT})`),
         `$1${newLog}`
@@ -445,10 +481,10 @@ class CLISelect {
       
       if (args.dryRun) {
         const trimmedLog = changelog.slice(0, `${DEFAULT_CHANGELOG_CONTENT}${newLog}`.length);
-        dryRunCmd(`writeFileSync(\n  '${CHANGELOG_PATH}',\n${trimmedLog}\n[...rest of file]\n\n)`);
+        dryRunCmd(`writeFile(\n  '${CHANGELOG_PATH}',\n${trimmedLog}\n[...rest of file]\n\n)`);
       }
       else {
-        writeFileSync(CHANGELOG_PATH, changelog);
+        await writeFile(CHANGELOG_PATH, changelog);
         rollbacks.push({ label: 'CHANGELOG', file: CHANGELOG_PATH, content: originalLog });
       }
     }
@@ -513,7 +549,7 @@ class CLISelect {
   renderHeader('STOP', 'App');
   if (CMD__DOCKER_START) {
     if (!args.dryRun) {
-      await cmd('docker-compose down', {
+      await cmd('docker compose down', {
         cwd: PATH__REPO_ROOT,
         onError: rollbackRelease,
         silent: false,
@@ -550,7 +586,7 @@ class CLISelect {
     const escapedNewChanges = newChanges
       .replace(/"/g, '\\"')
       .replace(/`/g, '\\`');
-    const GIT_CHANGELOG_MSG = `## ${VERSION_STR}\n\n${escapedNewChanges}`;
+    const GIT_CHANGELOG_MSG = `## ${VERSION_STR}\n\n<details>\n  <summary>Expand for ${VERSION_STR} Details</summary>\n\n${escapedNewChanges}\n</details>`;
     const GIT_TAG_CMD = `git tag -a "${VERSION_STR}" -m "${GIT_CHANGELOG_MSG}"`;
     if (args.dryRun) dryRunCmd(GIT_TAG_CMD);
     else {
@@ -565,7 +601,10 @@ class CLISelect {
     let DOCKER_USER, DOCKER_PASS, DOCKER_TAG;
     if (PATH__CREDS__DOCKER) {
       try {
-        [DOCKER_USER, DOCKER_PASS] = readFileSync(PATH__CREDS__DOCKER, 'utf8').split('\n');
+        const credsPath = ( await isSymbolic(PATH__CREDS__DOCKER) )
+          ? await readlink(PATH__CREDS__DOCKER)
+          : PATH__CREDS__DOCKER;
+        [ DOCKER_USER, DOCKER_PASS ] = (await readFile(credsPath, 'utf8')).split('\n');
       }
       catch (err) {
         await rollbackRelease();
@@ -640,54 +679,46 @@ class CLISelect {
         });
       }
       
-      let GITHUB_TOKEN = await cmd('git config --global github.token');
-      if (GITHUB_TOKEN) {
-        if (args.dryRun && !args.showCreds) GITHUB_TOKEN = '******';
+      let repoToken = await cmd(`git config --global ${REPO__HOST}.token`);
+      if (repoToken) {
+        if (args.dryRun && !args.showCreds) repoToken = '******';
         
-        const REMOTE_ORIGIN_URL = await cmd('git config --get remote.origin.url');
-        const urlMatches = REMOTE_ORIGIN_URL.match(/^(https|git)(:\/\/|@)([^/:]+)[/:]([^/:]+)\/(.+).git$/);
+        renderHeader('CREATE', `${REPO__HOST} release`);
         
-        renderHeader('CREATE', 'GitHub release');
+        const BRANCH = await cmd('git rev-parse --abbrev-ref HEAD');
+        const JSON_PAYLOAD = JSON.stringify({
+          body: GIT_CHANGELOG_MSG,
+          draft: false,
+          name: VERSION_STR,
+          prerelease: false,
+          tag_name: VERSION_STR,
+          target_commitish: BRANCH,
+        });
+        const REPO_API_URL = (REPO__API_URL) ? REPO__API_URL : 'https://api.github.com';
+        const REPO_API__RELEASES_URL = `${REPO_API_URL}/repos/${repoUser}/${repoName}/releases`;
         
-        if (urlMatches) {
-          const BRANCH = await cmd('git rev-parse --abbrev-ref HEAD');
-          const JSON_PAYLOAD = JSON.stringify({
-            body: GIT_CHANGELOG_MSG,
-            draft: false,
-            name: VERSION_STR,
-            prerelease: false,
-            tag_name: VERSION_STR,
-            target_commitish: BRANCH,
-          });
-          const GH_USER = urlMatches[4];
-          const GH_REPO = urlMatches[5];
-          const GH_API__RELEASE_URL = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/releases`;
-          // https://developer.github.com/v3/repos/releases/#create-a-release
-          const CURL_CMD = [
-            'curl',
-            '-H "Content-Type: application/json"',
-            `-H "Authorization: token ${GITHUB_TOKEN}"`,
-            '-X POST',
-            `-d '${JSON_PAYLOAD.replace(/'/g, '\\u0027')}'`,
-            '--silent --output /dev/null --show-error --fail',
-            GH_API__RELEASE_URL,
-          ].join(' ');
-          
-          if (args.dryRun) {
-            console.log(
-                 `  ${color.green('Payload')}: ${JSON.stringify(JSON.parse(JSON_PAYLOAD), null, 2)}`
-              +`\n  ${color.green('URL')}: ${color.blue.bold.underline(GH_API__RELEASE_URL)}`
-            );
-            dryRunCmd(CURL_CMD);
-          }
-          else await cmd(CURL_CMD, {
-            onError: rollbackRelease,
-            silent: false,
-          });
+        // https://developer.github.com/v3/repos/releases/#create-a-release
+        const CURL_CMD = [
+          'curl',
+          '-H "Content-Type: application/json"',
+          `-H "Authorization: token ${repoToken}"`,
+          '-X POST',
+          `-d '${JSON_PAYLOAD.replace(/'/g, '\\u0027')}'`,
+          '--silent --output /dev/null --show-error --fail',
+          REPO_API__RELEASES_URL,
+        ].join(' ');
+        
+        if (args.dryRun) {
+          console.log(
+                `  ${color.green('Payload')}: ${JSON.stringify(JSON.parse(JSON_PAYLOAD), null, 2)}`
+            +`\n  ${color.green('URL')}: ${color.blue.bold.underline(REPO_API__RELEASES_URL)}`
+          );
+          dryRunCmd(CURL_CMD);
         }
-        else {
-          console.log(`\n ${color.black.bgYellow(' WARN ')} ${color.yellow("Couldn't parse the origin URL for GH release creation")}`);
-        }
+        else await cmd(CURL_CMD, {
+          onError: rollbackRelease,
+          silent: false,
+        });
       }
       else {
         console.log(`\n ${color.black.bgYellow(' WARN ')} ${color.yellow('Skipping GH release creation: No GH token found')}`);
