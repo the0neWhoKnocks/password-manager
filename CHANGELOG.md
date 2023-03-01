@@ -1,6 +1,21 @@
 # Changelog
 ---
 
+## v2.3.1
+
+<details>
+  <summary>Expand for v2.3.1 Details</summary>
+
+  **Bugfixes**
+  - [791d7fb](/the0neWhoKnocks/password-manager/commit/791d7fb): Login dialog text wrapping
+
+  **Dev-Ops**
+  - [3004922](/the0neWhoKnocks/password-manager/commit/3004922): Ensure Docker folder structure
+  - [a5253c9](/the0neWhoKnocks/password-manager/commit/a5253c9): Updated release script
+</details>
+
+---
+
 ## v2.3.0
 
 **Bugfixes**
