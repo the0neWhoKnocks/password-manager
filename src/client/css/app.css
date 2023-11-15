@@ -38,8 +38,7 @@ form {
 form > *:not(:last-child) {
   margin-bottom: 1em;
 }
-form button,
-form input {
+form :where(button, input, textarea) {
   font-size: 1em;
 }
 form button {
@@ -106,21 +105,20 @@ button:not(:disabled) {
   margin: 0.5em 0;
 }
 
-.labeled-input input {
+.labeled-input :where(input, textarea) {
   width: var(--labeled-input__input-width, auto);
   padding: 0.5em;
-  margin-left: 0.5em;
   border: solid 1px;
   border-radius: 0.25em;
 }
-.labeled-input input:is(:focus, :focus-visible) {
+.labeled-input :where(input, textarea):is(:focus, :focus-visible) {
   outline: solid 2px;
   outline-offset: -2px;
 }
-.labeled-input input:required {
+.labeled-input :where(input, textarea):required {
   padding: 0.5em 1.75em 0.5em 0.5em;
 }
-.labeled-input input:required ~ svg {
+.labeled-input :where(input, textarea):required ~ svg {
   color: #ff7600;
   font-size: 1em;
   position: absolute;
@@ -130,6 +128,7 @@ button:not(:disabled) {
 }
 .labeled-input__wrapper {
   display: flex;
+  gap: 0.5em;
   justify-content: space-between;
   align-items: center;
   flex-direction: row-reverse;
@@ -137,12 +136,15 @@ button:not(:disabled) {
 }
 .labeled-input__deletable {
   width: var(--labeled-input__input-width, auto);
-  margin-left: 0.5em;
   display: flex;
 }
-.labeled-input__deletable input {
+.labeled-input__deletable textarea {
+  width: calc(var(--labeled-input__input-width) - 3em);
+  min-height: 3.25em;
+  resize: vertical;
   border-radius: 0.25em 0 0 0.25em;
   margin: 0;
+  flex-shrink: 0;
 }
 .labeled-input__deletable button {
   border-radius: 0 0.25em 0.25em 0;
@@ -448,7 +450,15 @@ custom-dialog button {
   font-family: 'MonoFont', monospace;
   font-size: 14px;
   text-align: center;
+  white-space: pre;
   border-top: dashed 1px var(--color__cardBorders);
+}
+.credentials-card__list-item-value span {
+  max-width: 100%;
+  text-align: left;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  display: inline-block;
 }
 .has--hidden-values .credentials-card__list-item-value span {
   filter: blur(4px);
@@ -499,7 +509,7 @@ custom-dialog button {
 .creds-form__inputs > *:not(:last-child) {
   margin-bottom: 0.25em;
 }
-.creds-form__inputs input {
+.creds-form__inputs :where(input, textarea) {
   font-family: 'MonoFont', monospace;
 }
 #addCustomCred {
