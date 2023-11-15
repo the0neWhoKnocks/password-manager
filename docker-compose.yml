@@ -42,7 +42,7 @@ services:
       # Map the current directory over for development
       - "${PWD}:/home/node/app"
   
-  e2e-cypress:
+  e2e-passman:
     container_name: e2e-passman
     depends_on:
       - password-manager
