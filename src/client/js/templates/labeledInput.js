@@ -26,6 +26,15 @@
         ${disabled ? 'disabled' : ''}
       />
     `;
+    const textarea = `
+      <textarea
+        id="${id}"
+        ${name ? `name="${name}"` : ''}
+        ${placeholder ? `placeholder="${placeholder}"` : ''}
+        ${required ? 'required' : ''}
+        ${disabled ? 'disabled' : ''}
+      >${value ? value : ''}</textarea>
+    `;
     return `
       <div class="labeled-input ${extraClasses}">
         <div class="labeled-input__wrapper">
@@ -34,7 +43,7 @@
           `) : ''}
           ${deletable ? (`
             <div class="labeled-input__deletable">
-              ${input}
+              ${textarea}
               <button type="button" value="deleteInput">✕</button>
             </div>
           `) : input}
