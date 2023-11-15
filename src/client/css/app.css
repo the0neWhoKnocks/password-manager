@@ -328,18 +328,45 @@ custom-dialog button {
   align-items: center;
 }
 
-.credentials__filter-input-wrapper {
+.credentials__top-ui {
+  width: var(--credCardWidth);
+  box-shadow: 0 0 10px 32px rgb(var(--color__credsBodyBG));
+  margin-bottom: 3em;
+  background: rgb(var(--color__credsBodyBG));
+  display: flex;
+  gap: 0.5em;
   position: sticky;
   top: 0;
   z-index: 1;
 }
+
+.credentials__hide-values-btn {
+  user-select: none;
+  padding: 0.25em 0.5em;
+  border-radius: 0.25em;
+  border: solid 1px var(--color__cardBorders, currentColor);
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+  cursor: pointer;
+}
+.has--no-credentials .credentials__hide-values-btn {
+  display: none;
+}
+
+.credentials__filter-input-wrapper,
 .credentials__filter-input {
-  width: var(--credCardWidth);
-  margin-bottom: 3em;
+  width: 100%;
+}
+
+.credentials__filter-input-wrapper {
+  position: relative;
+}
+
+.credentials__filter-input {
   padding: 1em;
   padding-right: 3.5em;
   border: solid 1px var(--color__cardBorders);
-  box-shadow: 0 0 10px 32px rgb(var(--color__credsBodyBG));
 }
 .credentials__clear-filter-btn {
   font-size: 1.5em;
