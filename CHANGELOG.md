@@ -1,6 +1,26 @@
 # Changelog
 ---
 
+## v2.4.0
+
+<details>
+  <summary>Expand for v2.4.0 Details</summary>
+
+  **Dev-Ops**
+  - [56e64c8](/the0neWhoKnocks/password-manager/commit/56e64c8): Added test
+  - [b76746e](/the0neWhoKnocks/password-manager/commit/b76746e): Update 'docker-compose' usage to 'docker compose'
+  - [c4238a4](/the0neWhoKnocks/password-manager/commit/c4238a4): Updated releaser
+  - [3a15358](/the0neWhoKnocks/password-manager/commit/3a15358): Unique service name for e2e
+  - [4db8af6](/the0neWhoKnocks/password-manager/commit/4db8af6): Added Docker development env
+
+  **Features**
+  - [3e594a5](/the0neWhoKnocks/password-manager/commit/3e594a5): Toggle 'hide values' from the UI
+  - [3a27776](/the0neWhoKnocks/password-manager/commit/3a27776): Allow for multiline custom values
+  - [1c154e8](/the0neWhoKnocks/password-manager/commit/1c154e8): Blur content behind Dialog
+</details>
+
+---
+
 ## v2.3.1
 
 <details>
