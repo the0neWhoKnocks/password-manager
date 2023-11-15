@@ -96,7 +96,7 @@ NODE_EXTRA_CA_CERTS="${PWD}/certs/localhost.crt" npm run start:dev
 
 **Via Docker**
 ```sh
-docker-compose up
+docker compose up
 ```
 
 ### Testing
