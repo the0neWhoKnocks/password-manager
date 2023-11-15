@@ -105,7 +105,7 @@ if $WATCH_MODE; then
   fi
 
   if [[ "$display" != "" ]]; then
-    cypressCmd="docker-compose run --user ${CURR_UID}:${CURR_GID} -e DISPLAY=${display} ${extraArgs} --rm --entrypoint cypress ${E2E_SERVICE} open --project ."
+    cypressCmd="docker compose run --user ${CURR_UID}:${CURR_GID} -e DISPLAY=${display} ${extraArgs} --rm --entrypoint cypress ${E2E_SERVICE} open --project ."
     
     if [[ "$xlaunchBinary" != "" ]] && [ -f "$xlaunchBinary" ]; then
       echo;
@@ -144,7 +144,7 @@ if $BUILD; then
   
   echo;
   echo "[BUILD] Containers"
-  docker-compose build $APP_SERVICE $E2E_SERVICE
+  docker compose build $APP_SERVICE $E2E_SERVICE
   if [ $? -ne 0 ]; then
     echo "[ERROR] Building Docker image failed."
     exit 1
@@ -160,11 +160,11 @@ if [[ "$cypressCmd" != "" ]]; then
 else
   envVars=$(printf "export %s; " "${baseEnvVars[@]}")
   # NOTE - `depends_on` in docker-compose will start the App
-  eval "${envVars} docker-compose up --abort-on-container-exit ${E2E_SERVICE}" 
+  eval "${envVars} docker compose up --abort-on-container-exit ${E2E_SERVICE}" 
 fi
 exitCode=$(echo $?)
 
-docker-compose down
+docker compose down
 
 if [[ "$xlaunchKillCmd" != "" ]]; then
   echo;
