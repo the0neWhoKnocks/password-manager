@@ -187,6 +187,22 @@ context('Notes', () => {
         cy.getCredCard(LABEL).find(`[title='Click to copy "${key}" value from "${LABEL}"']`).click();
         cy.getClipboard().should('eq', value);
       });
+      
+      it('should hide/show values', () => {
+        cy.get('.credentials__hide-values-btn input').as('HIDE_INPUT');
+        cy.get('.credentials').as('CREDS');
+        
+        cy.get('@CREDS').should('not.have.class', 'has--hidden-values');
+        cy.get('@HIDE_INPUT').should('not.be.checked').click();
+        cy.get('@CREDS').should('have.class', 'has--hidden-values');
+        cy.get('.credentials-card__list-item-value span').each(($el) => {
+          cy.wrap($el)
+            .should('have.css', 'filter')
+            .should('include', 'blur(4px)');
+        });
+        cy.get('@HIDE_INPUT').should('be.checked').click();
+        cy.get('@CREDS').should('not.have.class', 'has--hidden-values');
+      });
     });
     
     describe('Second Cred', () => {
