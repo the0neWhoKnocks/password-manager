@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-const { access, lstat, readFile, readlink, writeFile } = require('fs/promises');
+const { access, lstat, readFile, readlink, writeFile } = require('node:fs/promises');
 
 // Boilerplate =================================================================
 
 const color = (() => {
-  const tty = require('tty');
+  const tty = require('node:tty');
   const colorize = /^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux/i.test(process.env.TERM) && tty.isatty(1);
 
   function CLIColor(str = '') {
@@ -38,7 +38,7 @@ function handleError(exitCode, errMsg) {
 }
 
 const cmd = (cmd, { cwd, onError, silent = true } = {}) => new Promise((resolve, reject) => {
-  const { spawn } = require('child_process');
+  const { spawn } = require('node:child_process');
   const opts = { cwd };
   const child = spawn('sh', ['-c', cmd], opts);
   let stdout = '';
@@ -88,7 +88,7 @@ function renderHeader(prefix, msg) {
 }
 
 const parseArgs = ({ desc, flags }) => {
-  const SCRIPT_NAME = require('path').basename(__filename);
+  const SCRIPT_NAME = require('node:path').basename(__filename);
   const rawArgs = [...process.argv.slice(2)];
   const args = {};
   let currProp;
@@ -179,7 +179,7 @@ class CLISelect {
     this.rawOptions = options;
     this.ICON__NOT_SELECTED = color.black.bold('■');
     this.ICON__SELECTED = color.blue.bold('■');
-    this.rdl = require('readline');
+    this.rdl = require('node:readline');
     this.formattedOptions = [];
     this.selectedOptionNdx = 0;
     this.selectedMsg = selectedMsg;
@@ -679,7 +679,12 @@ const isSymbolic = async (path) => {
         });
       }
       
-      let repoToken = await cmd(`git config --global ${REPO__HOST}.token`);
+      let repoToken = await cmd(`git config --global ${REPO__HOST}.token`, {
+        cwd: PATH__REPO_ROOT,
+        onError: rollbackRelease,
+        silent: false,
+      });
+      
       if (repoToken) {
         if (args.dryRun && !args.showCreds) repoToken = '******';
         
