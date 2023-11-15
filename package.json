@@ -7,7 +7,8 @@
   },
   "main": "index.js",
   "scripts": {
-    "preinstall": "node ./bin/pre-install.js",
+    "lint": "eslint ./*.js \"{bin,src}/**/*.{js}\"",
+    "preinstall": "if [ -z \"$IN_CONTAINER\" ] || ! $IN_CONTAINER; then echo -e \" [ERROR] Not in Docker\\n\"; rm -rf node_modules; exit 1; fi",
     "release": "./bin/release.js",
     "release:dryrun": "./bin/release.js -dr",
     "release:update": "sh -c \"$(curl -fsSL https://raw.githubusercontent.com/the0neWhoKnocks/release-script/master/js/tools/install.sh) --update --install-dir \\\"bin\\\"\"",

@@ -1,18 +1,18 @@
-version: "3.4"
-
 services:
   password-manager:
     build:
       context: ./
-      dockerfile: Dockerfile
+      dockerfile: .docker/Dockerfile
     container_name: password-manager
     image: theonewhoknocks/password-manager
     environment:
       DATA_PATH: /home/node/app/data
       NODE_ENV: production
       NODE_EXTRA_CA_CERTS: /home/node/app/certs/localhost.crt
+      TZ: America/Los_Angeles
     ports:
       - "3000:3000"
+    user: "${CURR_UID}:${CURR_GID}"
     volumes:
       - type: bind
         source: "${PWD}/certs"
@@ -20,6 +20,27 @@ services:
       - type: bind
         source: "${PWD}/e2e/mnt/data"
         target: "/home/node/app/data"
+  
+  password_manager_dev:
+    extends: password-manager # allows for just changing key pieces of data for development
+    command: tail -F /dev/null # starts the container, and keeps it running
+    container_name: password_manager_dev
+    environment:
+      NODE_ENV: development
+    ports:
+      # browserSync
+      - "3001:3001"
+      - "3002:3002"
+      - "3003:3003"
+      # inspector
+      - "9229:9229"
+    volumes:
+      # Map shell files over, so they're maintained between sessions
+      - "${PWD}/.docker/.vimrc:/home/node/.vimrc"
+      - "${PWD}/.docker/.zshrc:/home/node/.zshrc"
+      - "${PWD}/.ignore:/home/node/dev" # allows for .zsh_history to be written
+      # Map the current directory over for development
+      - "${PWD}:/home/node/app"
   
   e2e-cypress:
     container_name: e2e-passman
