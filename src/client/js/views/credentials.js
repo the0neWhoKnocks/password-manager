@@ -11,8 +11,21 @@
     .replace(/</g, "&lt;")
     .replace(/"/g, "&quot;");
   
+  const storage = {
+    key: 'passman',
+    get(prop) {
+      const data = JSON.parse(localStorage.getItem(this.key) || '{}');
+      return (prop) ? data[prop] : data;
+    },
+    set(data) {
+      const currData = storage.get();
+      localStorage.setItem(this.key, JSON.stringify({ ...currData, ...data }));
+    },
+  };
+  
   const queryParams = new URLSearchParams(location.search);
-  const HIDE_VALUES = queryParams.get('hideValues') === 'true';
+  const sVals = storage.get();
+  const hideValues = sVals.hideVals || queryParams.get('hideValues') === 'true';
   
   const templates = {
     credCard: ({ _ndx, label, ...creds }) => {
@@ -113,7 +126,7 @@
       `;
     },
     view: () => `
-      <div class="credentials ${HIDE_VALUES ? 'has--hidden-values' : ''}">
+      <div class="credentials">
         <style id="filterStyles"></style>
         <nav class="credentials__top-nav">
           <custom-drop-down label="Credentials">
@@ -132,13 +145,19 @@
             No credentials present. Go to Credentials &gt; Add
           </div>
           <div class="credentials__list">
-            <div class="credentials__filter-input-wrapper">
-              <input class="credentials__filter-input" type="text" placeholder="Filter by Label" />
-              <button class="credentials__clear-filter-btn" title="Clear Filter" disabled>
-                <svg class="svg-icon">
-                  <use xlink:href="#delete" xmlns:xlink="http://www.w3.org/1999/xlink"></use>
-                </svg>
-              </button>
+            <div class="credentials__top-ui">
+              <div class="credentials__filter-input-wrapper">
+                <input class="credentials__filter-input" type="text" placeholder="Filter by Label" />
+                <button class="credentials__clear-filter-btn" title="Clear Filter" disabled>
+                  <svg class="svg-icon">
+                    <use xlink:href="#delete" xmlns:xlink="http://www.w3.org/1999/xlink"></use>
+                  </svg>
+                </button>
+              </div>
+              <label class="credentials__hide-values-btn">
+                <input id="hideVals" type="checkbox" name="hideValues" />
+                Hide
+              </label>
             </div>
             <div class="credentials__cards"></div>
           </div>
@@ -159,20 +178,21 @@
     `,
   };
   
-  let credentialsEl;
-  let logoutBtn;
   let addCredsBtn;
-  let exportCredsBtn;
-  let importCredsBtn;
-  let deleteUserBtn;
-  let updateUserBtn;
+  let cardsEl;
+  let clearFilterBtn;
+  let credentialsEl;
   let credsBody;
   let credsList;
-  let loadedCreds;
-  let cardsEl;
-  let filterStyles;
+  let deleteUserBtn;
+  let exportCredsBtn;
   let filterInput;
-  let clearFilterBtn;
+  let filterStyles;
+  let hideVals;
+  let importCredsBtn;
+  let loadedCreds;
+  let logoutBtn;
+  let updateUserBtn;
   
   function addValueToClipboard(el) {
     const temp = document.createElement('textarea');
@@ -469,6 +489,7 @@
     logoutBtn = credentialsEl.querySelector('#logout');
     addCredsBtn = credentialsEl.querySelector('#addCreds');
     exportCredsBtn = credentialsEl.querySelector('#exportCreds');
+    hideVals = credentialsEl.querySelector('#hideVals');
     importCredsBtn = credentialsEl.querySelector('#importCreds');
     deleteUserBtn = credentialsEl.querySelector('#deleteUser');
     updateUserBtn = credentialsEl.querySelector('#updateUser');
@@ -513,6 +534,16 @@
         type: window.utils.saveFile.FILE_TYPE__JSON,
       });
     });
+    
+    hideVals.addEventListener('change', ({ currentTarget: { checked } }) => {
+      storage.set({ hideVals: checked });
+      
+      if (checked) { credentialsEl.classList.add('has--hidden-values'); }
+      else { credentialsEl.classList.remove('has--hidden-values'); }
+    });
+    if (hideValues) {
+      hideVals.click();
+    }
     
     importCredsBtn.addEventListener('click', async () => {
       try {
