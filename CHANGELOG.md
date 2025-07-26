@@ -1,6 +1,24 @@
 # Changelog
 ---
 
+## v2.5.0
+
+<details>
+  <summary>Expand for v2.5.0 Details</summary>
+
+  **Bugfixes**
+  - [77b10c6](/the0neWhoKnocks/password-manager/commit/77b10c6): Credential title has different casing
+
+  **Dev-Ops**
+  - [b83db13](/the0neWhoKnocks/password-manager/commit/b83db13): Remove mention of compile step
+  - [bb26657](/the0neWhoKnocks/password-manager/commit/bb26657): Decouple release script from repo
+
+  **Features**
+  - [24c701a](/the0neWhoKnocks/password-manager/commit/24c701a): Credential 'website' is clickable link
+</details>
+
+---
+
 ## v2.4.0
 
 <details>
