@@ -414,7 +414,6 @@ custom-dialog button {
 }
 .credentials-card__label {
   font-weight: bold;
-  text-transform: capitalize;
   line-height: 2em;
   border-bottom: solid 1px var(--color__cardBorders, currentColor);
   margin-bottom: 1em;
