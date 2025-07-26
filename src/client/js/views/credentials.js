@@ -30,18 +30,32 @@
   const templates = {
     credCard: ({ _ndx, label, ...creds }) => {
       const { customFields = {}, ...standardFields } = creds;
-      const listItem = (obj, prop) => `
-        <button
-          class="credentials-card__list-item"
-          title="${sanitizeStringForAttr(`Click to copy "${prop}" value from "${label}"`)}"
-        >
+      const listItem = (obj, prop) => {
+        const baseAttrs = 'class="credentials-card__list-item"';
+        const childMarkup = ({ valEl }) => `
           <div class="credentials-card__list-item-column">
             <label>${prop}</label>
-            <div class="credentials-card__list-item-value"><span>${obj[prop]}</span></div>
+            <div class="credentials-card__list-item-value">${valEl}</div>
           </div>
-          <div class="credentials-card__clipboard-icon">&#x1F4CB;</div>
-        </button>
-      `;
+        `;
+        
+        switch (prop) {
+          case 'website': return `
+            <div ${baseAttrs}>
+              ${childMarkup({ valEl: `<a href="${obj[prop]}">${obj[prop]}</a>` })}
+            </div>
+          `;
+          default: return `
+            <button
+              ${baseAttrs}
+              title="${sanitizeStringForAttr(`Click to copy "${prop}" value from "${label}"`)}"
+            >
+              ${childMarkup({ valEl: `<span>${obj[prop]}</span>` })}
+              <div class="credentials-card__clipboard-icon">&#x1F4CB;</div>
+            </button>
+          `;
+        }
+      };
       
       return `
         <div class="credentials-card" data-card-label="${strForDataAttr(label)}">
@@ -294,11 +308,11 @@
   function handleCredCardClick(ev) {
     const currEl = ev.target;
     
-    if (currEl.classList.contains('credentials-card__list-item')) {
-      addValueToClipboard(currEl);
-    }
-    else if (currEl.nodeName === 'BUTTON') {
-      if (currEl.value === 'edit') {
+    if (currEl.nodeName === 'BUTTON') {
+      if (currEl.classList.contains('credentials-card__list-item')) {
+        addValueToClipboard(currEl);
+      }
+      else if (currEl.value === 'edit') {
         const ndx = currEl.dataset.ndx;
         const dialog = createAddOrEditCredsDialog(loadedCreds[ndx], ndx);
         const form = dialog.querySelector('.creds-form');

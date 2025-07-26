@@ -144,11 +144,20 @@ context('Notes', () => {
         cy.getCredCard(LABEL);
         cy.get('@CARD').find('header').contains(LABEL);
         cy.get('@CARD').find(`${cy.selectors.CRED_CARD}__list-item`).each(($el, ndx) => {
-          const [key, value] = items[ndx + 1];
+          const [ key, value ] = items[ndx + 1];
           cy.wrap($el).as('ITEM');
-          cy.get('@ITEM').invoke('attr', 'title').should('eq', `Click to copy "${key}" value from "${LABEL}"`);
-          cy.get('@ITEM').click();
-          cy.getClipboard().should('eq', value);
+          
+          switch (key) {
+            case 'website': {
+              cy.get('@ITEM').find('.credentials-card__list-item-value a').should('have.attr', 'href', value);
+              break;
+            }
+            default: {
+              cy.get('@ITEM').invoke('attr', 'title').should('eq', `Click to copy "${key}" value from "${LABEL}"`);
+              cy.get('@ITEM').click();
+              cy.getClipboard().should('eq', value);
+            }
+          }
         });
         cy.screencap('Creds added');
       });

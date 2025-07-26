@@ -425,10 +425,12 @@ custom-dialog button {
   padding: 0;
   border: solid 1px var(--color__cardBorders);
   background: transparent;
-  cursor: pointer;
   display: flex;
   align-items: stretch;
   position: relative;
+}
+button.credentials-card__list-item {
+  cursor: pointer;
 }
 .credentials-card__list-item.copied::after {
   content: 'Copied';
@@ -450,7 +452,7 @@ custom-dialog button {
 .credentials-card__list-item:not(:first-child) {
   margin-top: 0.5em;
 }
-.credentials-card__list-item * {
+.credentials-card__list-item > * {
   user-select: none;
   pointer-events: none;
 }
@@ -478,6 +480,12 @@ custom-dialog button {
   text-align: center;
   white-space: pre;
   border-top: dashed 1px var(--color__cardBorders);
+}
+.credentials-card__list-item-value:has(a) {
+  pointer-events: all;
+}
+.credentials-card__list-item-value a {
+  color: #0063cd;
 }
 .credentials-card__list-item-value span {
   max-width: 100%;
