@@ -119,10 +119,10 @@ context('Notes', () => {
       const LABEL = 'temp';
       const items = [
         ['label', LABEL, true], 
-        ['password', 'password1234', true], 
-        ['website', 'http://test.it'], 
-        ['email', 'test@example.com'], 
         ['username', 'test'],
+        ['password', 'password1234', true], 
+        ['email', 'test@example.com'], 
+        ['website', 'http://test.it'], 
       ];
       
       it('should add credentials', () => {
@@ -174,7 +174,7 @@ context('Notes', () => {
         cy.get('@BTN__UPDATE').should('not.be.disabled');
         cy.updateCred();
         
-        const [key, value] = items[1];
+        const [ key, value ] = items[2];
         cy.getCredCard(LABEL).find(`${cy.selectors.CRED_CARD}__list-item`).as('CARD_ITEM').should('have.length', 1);
         cy.get('@CARD_ITEM').find('label').invoke('text').should('eq', key);
         cy.get('@CARD_ITEM').click();

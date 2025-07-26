@@ -30,6 +30,13 @@
   const templates = {
     credCard: ({ _ndx, label, ...creds }) => {
       const { customFields = {}, ...standardFields } = creds;
+      const sFieldKeys = Object.keys(standardFields);
+      const sFieldsOrder = [ // list of fields in `.creds-form__inputs`
+        'username',
+        'password',
+        'email',
+        'website',
+      ];
       const listItem = (obj, prop) => {
         const baseAttrs = 'class="credentials-card__list-item"';
         const childMarkup = ({ valEl }) => `
@@ -61,7 +68,7 @@
         <div class="credentials-card" data-card-label="${strForDataAttr(label)}">
           <header class="credentials-card__label">${label}</header>
           <div class="credentials-card__list">
-            ${Object.keys(standardFields).map((prop) => listItem(standardFields, prop)).join('')}
+            ${sFieldsOrder.filter((f) => sFieldKeys.includes(f)).map((prop) => listItem(standardFields, prop)).join('')}
             ${Object.keys(customFields).map((prop) => listItem(customFields, prop)).join('')}
           </div>
           <nav class="credentials-card__ui">
@@ -112,10 +119,10 @@
             ` : ''}
             <div class="creds-form__inputs">
               ${window.templates.labeledInput({ label: 'Label', name: 'label', value: label, required: true })}
-              ${window.templates.labeledInput({ label: 'Password', name: 'password', value: credPassword, required: true })}
-              ${window.templates.labeledInput({ label: 'Website', name: 'website', value: website })}
-              ${window.templates.labeledInput({ label: 'Email', name: 'email', type: 'email', value: email })}
               ${window.templates.labeledInput({ label: 'Username', name: 'username', value: credUsername })}
+              ${window.templates.labeledInput({ label: 'Password', name: 'password', value: credPassword, required: true })}
+              ${window.templates.labeledInput({ label: 'Email', name: 'email', type: 'email', value: email })}
+              ${window.templates.labeledInput({ label: 'Website', name: 'website', value: website })}
               ${Object.keys(customFields).map((prop) => {
                 return templates.customField({
                   hiddenValue: prop,
