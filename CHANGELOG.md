@@ -1,6 +1,17 @@
 # Changelog
 ---
 
+## v2.6.0
+
+<details>
+  <summary>Expand for v2.6.0 Details</summary>
+
+  **Features**
+  - [0b4c6f1](/the0neWhoKnocks/password-manager/commit/0b4c6f1): Credential fields order
+</details>
+
+---
+
 ## v2.5.0
 
 <details>

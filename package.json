@@ -1,6 +1,6 @@
 {
   "name": "password-manager",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "A password manager",
   "engines": {
     "node": ">=14"
