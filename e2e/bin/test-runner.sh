@@ -7,7 +7,6 @@ export CURR_GID=$(id -g)
 APP__PORT=3000
 APP_SERVICE="password-manager"
 BUILD=true
-# CMD__COMPILE_ASSETS=$(node -e "console.log(require('./release-config').CMD__COMPILE_ASSETS)")
 DOCKER_HOST="host.docker.internal"
 E2E_SERVICE="e2e-passman"
 SCRIPT_DIR="$(cd "$(dirname "$0")" > /dev/null 2>&1; pwd -P)"
@@ -134,14 +133,6 @@ if $WATCH_MODE; then
 fi 
 
 if $BUILD; then
-  # echo;
-  # echo "[COMPILE] App"
-  # eval $CMD__COMPILE_ASSETS
-  # if [ $? -ne 0 ]; then
-  #   echo "[ERROR] Compiling App for Docker failed."
-  #   exit 1
-  # fi
-  
   echo;
   echo "[BUILD] Containers"
   docker compose build $APP_SERVICE $E2E_SERVICE
