@@ -1,4 +1,9 @@
 (() => {
+  const {
+    ROUTE__USER__CREATE,
+    ROUTE__USER__LOGIN,
+  } = window.api;
+  
   window.showLogin = function showLogin() {
     const doors = document.createElement('div');
     doors.classList.add('doors');
@@ -11,7 +16,7 @@
         slot="dialogBody"
         id="loginForm"
         method="POST"
-        action="/api/user/login"
+        action="${ROUTE__USER__LOGIN}"
         autocomplete="off"
         spellcheck="false"
       >
@@ -35,7 +40,7 @@
         slot="dialogBody"
         id="createAccount"
         method="POST"
-        action="/api/user/create"
+        action="${ROUTE__USER__CREATE}"
         autocomplete="off"
         spellcheck="false"
       >

@@ -3,11 +3,17 @@ const glob = require('glob');
 const mkdirp = require('mkdirp');
 const returnErrorResp = require('../utils/returnErrorResp');
 const log = require('../utils/logger').logger('middleware:view');
+const c = require('../../constants');
+
 const {
   CONFIG_PATH,
   DATA_PATH,
   PUBLIC_JS,
-} = require('../../constants');
+} = c;
+const apiRoutes = Object.entries(c).reduce((obj, [ key, value ]) => {
+  if (key.startsWith('ROUTE__')) obj[key] = value;
+  return obj;
+}, {});
 
 function ensureFolderStructure() {
   if (!existsSync(DATA_PATH)) mkdirp.sync(DATA_PATH);
@@ -19,7 +25,6 @@ const getJSFiles = () => new Promise((resolve, reject) => {
     glob('/**/*.js', {
       ignore: [
         '/**/app.js',
-        '/**/*.test.js',
       ],
       root: PUBLIC_JS,
     }, (err, filePaths) => {
@@ -65,10 +70,11 @@ function viewMiddleware({ resp }) {
             <meta name="theme-color" content="#000000">
             
             <link rel="stylesheet" href="/css/app.css"/>
-            ${jsFilePaths.map(s => `<script src="${s}"></script>`).join(`\n\t\t\t`)}
             <script>
               window.NEEDS_INITAL_SETUP = ${NEEDS_INITAL_SETUP};
+              window.api = ${JSON.stringify(apiRoutes)};
             </script>
+            ${jsFilePaths.map(s => `<script src="${s}"></script>`).join(`\n\t\t\t`)}
           </head>
           <body>
             <style>

@@ -1,4 +1,14 @@
 (() => {
+  const {
+    ROUTE__USER__CREDS__ADD,
+    ROUTE__USER__CREDS__DELETE,
+    ROUTE__USER__CREDS__IMPORT,
+    ROUTE__USER__CREDS__LOAD,
+    ROUTE__USER__CREDS__UPDATE,
+    ROUTE__USER__DELETE,
+    ROUTE__USER__UPDATE,
+  } = window.api;
+  
   const pad = (num, token='00') => token.substring(0, token.length-`${num}`.length) + num;
   const sortArrayByProp = (prop) => (a, b) => {
     const subCheck = (b[prop].toLowerCase() > a[prop].toLowerCase()) ? -1 : 0;
@@ -101,8 +111,8 @@
       const { password, username } = window.utils.storage.get('userData');
       const updating = !!Object.keys(currentData).length;
       const endpoint = (updating)
-        ? '/api/user/creds/update'
-        : '/api/user/creds/add';
+        ? ROUTE__USER__CREDS__UPDATE
+        : ROUTE__USER__CREDS__ADD;
       
       return `
         <div slot="dialogBody">
@@ -332,7 +342,7 @@
         const { password, username } = window.utils.storage.get('userData');
         
         deleteConfirmationDialog({
-          endpoint: '/api/user/creds/delete',
+          endpoint: ROUTE__USER__CREDS__DELETE,
           hiddenInputs: [
             { name: 'credsNdx', value: ndx },
             { name: 'username', value: username },
@@ -409,7 +419,7 @@
     
     try {
       const { creds } = await window.utils.postData(
-        '/api/user/creds/load',
+        ROUTE__USER__CREDS__LOAD,
         window.utils.storage.get('userData')
       );
       loadedCreds = creds;
@@ -574,7 +584,7 @@
         });
         
         if (loadedData) {
-          await window.utils.postData('/api/user/creds/import', {
+          await window.utils.postData(ROUTE__USER__CREDS__IMPORT, {
             creds: JSON.parse(loadedData).creds,
             user: { username, password },
           });
@@ -593,7 +603,7 @@
       const { username } = window.utils.storage.get('userData');
       
       deleteConfirmationDialog({
-        endpoint: '/api/user/delete',
+        endpoint: ROUTE__USER__DELETE,
         hiddenInputs: [
           { name: 'username', value: username },
         ],
@@ -621,7 +631,7 @@
         <form
           slot="dialogBody"
           class="update-user-form"
-          action="/api/user/update"
+          action="${ROUTE__USER__UPDATE}"
           method="POST"
           autocomplete="off"
           spellcheck="false"

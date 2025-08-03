@@ -1,4 +1,6 @@
 (() => {
+  const { ROUTE__CONFIG__CREATE } = window.api;
+  
   window.showConfigSetUp = function showConfigSetUp() {
     window.utils.storage.clear();
     
@@ -8,7 +10,7 @@
       <form
         slot="dialogBody"
         id="createConfig"
-        action="/api/config/create"
+        action="${ROUTE__CONFIG__CREATE}"
         method="POST"
         autocomplete="off"
       >
