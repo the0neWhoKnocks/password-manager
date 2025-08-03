@@ -1,5 +1,5 @@
 ## Base Node image
-FROM node:14-alpine as node14-dev-base
+FROM node:24.1.0-alpine3.22 AS node24-dev-base
 # Add any extra base packages below. Comment why they're added for your own 
 # sanity later. Add any App specific packages further down (there's a comment).
 # - `rsync` for the `dist` setup
@@ -14,7 +14,7 @@ COPY ./.docker/.zshrc /home/node/.zshrc
 COPY ./.docker/zsh-autosuggestions.zsh /home/node/zsh-autosuggestions.zsh
 
 # start building the base
-FROM node14-dev-base as passman--packagejson
+FROM node24-dev-base as passman--packagejson
 # Create a temporary package.json where things like `version` and `scripts`
 # are omitted so the cache of the build step won't be invalidated.
 COPY --chown=node:node ./package*.json ./
@@ -37,7 +37,7 @@ RUN ["node", "-e", " \
 "]
 
 # Set up the environment
-FROM node14-dev-base AS passman
+FROM node24-dev-base AS passman
 ENV NODE_ENV=production
 ENV APP=/home/node/app
 ENV IN_CONTAINER=true

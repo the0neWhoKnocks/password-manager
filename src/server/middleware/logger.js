@@ -1,4 +1,3 @@
-const url = require('url');
 const debugModule = require('debug');
 const { ROOT_NAMESPACE } = require('../utils/logger');
 
@@ -7,7 +6,8 @@ debugModule.inspectOpts.hideDate = true;
 function loggerMiddleware({ req }) {
   // URL is `/` or `/?<param>`
   if (/^\/(\?.*)?$/.test(req.url)) {
-    const { debug } = url.parse(req.url, true).query;
+    const reqUrl = new URL(req.url, `${req.protocol}://${req.headers.host}`);
+    const { debug } = reqUrl.searchParams;
     
     if (debug) {
       loggerMiddleware.loggerEnabled = true;

@@ -1,4 +1,3 @@
-const url = require('url');
 const middleware = require('./middleware');
 const { SERVER_PORT } = require('../constants');
 
@@ -12,7 +11,8 @@ const _middleware = middleware.map((fn) => (opts) => {
 });
 
 const requestHandler = (req, resp) => {
-  const { pathname: urlPath } = url.parse(req.url);
+  const reqUrl = new URL(req.url, `${req.protocol}://${req.headers.host}`);
+  const { pathname: urlPath } = reqUrl;
   
   resp.preparingAsyncResponse = () => { resp.sendingAsyncResponse = true; };
   
