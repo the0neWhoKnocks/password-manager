@@ -64,6 +64,7 @@ const checkServer = () => new Promise((rootResolve, rootReject) => {
 
 nodemon({
   delay: 500,
+  exec: 'node --inspect=0.0.0.0',
   script: './src/server',
   watch: [
     './src/server/**/*.js'
