@@ -65,9 +65,6 @@ COPY --chown=node:node ./src/client/js ./client/js
 COPY --chown=node:node ./src/server ./server
 COPY --chown=node:node ./src/constants.js ./
 
-# List off contents of final image
-RUN ls -la $APP
-
 # Expose the default port from the Server, on the container
 EXPOSE 3000
 
