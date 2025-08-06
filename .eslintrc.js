@@ -9,9 +9,14 @@ module.exports = {
     '/bin/release.js',
   ],
   parserOptions: {
-    ecmaVersion: 2019,
+    ecmaVersion: 2024,
+    sourceType: 'module',
   },
   rules: {
+    'no-unused-vars': ['error', {
+      args: 'after-used',
+      argsIgnorePattern: "^_$",
+    }],
     'require-atomic-updates': 'off',
   }
 };

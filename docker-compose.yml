@@ -1,9 +1,9 @@
 services:
-  password-manager:
+  passman:
     build:
       context: ./
       dockerfile: .docker/Dockerfile
-    container_name: password-manager
+    container_name: passman
     image: theonewhoknocks/password-manager
     environment:
       DATA_PATH: /home/node/app/data
@@ -21,10 +21,10 @@ services:
         source: "${PWD}/e2e/mnt/data"
         target: "/home/node/app/data"
   
-  password_manager_dev:
-    extends: password-manager # allows for just changing key pieces of data for development
+  passman-dev:
+    extends: passman # allows for just changing key pieces of data for development
     command: tail -F /dev/null # starts the container, and keeps it running
-    container_name: password_manager_dev
+    container_name: passman-dev
     environment:
       NODE_ENV: development
     ports:
@@ -41,26 +41,3 @@ services:
       - "${PWD}/.ignore:/home/node/dev" # allows for .zsh_history to be written
       # Map the current directory over for development
       - "${PWD}:/home/node/app"
-  
-  e2e-passman:
-    container_name: e2e-passman
-    depends_on:
-      - password-manager
-    environment:
-      ## Cypress vars
-      CYPRESS_BASE_URL: "${CYPRESS_BASE_URL}"
-      # DEBUG: cypress:server:browsers:electron # view Electron internal logging
-      # ELECTRON_ENABLE_LOGGING: 1 # view console logs from Browser (headless)
-    hostname: cypresstests
-    image: cypress/included:9.3.0
-    ipc: host # https://github.com/cypress-io/cypress/issues/350#issuecomment-267704772
-    ports:
-      - "9001:3000"
-    privileged: true
-    user: "${CURR_UID}:${CURR_GID}"
-    working_dir: /repo/e2e
-    volumes:
-      - "${PWD}/e2e:/repo/e2e"
-      - type: bind
-        source: "${PWD}/e2e/mnt/data"
-        target: "/repo/e2e/cypress/fixtures"

@@ -11,7 +11,7 @@
     "preinstall": "if [ -z \"$IN_CONTAINER\" ] || ! $IN_CONTAINER; then echo -e \" [ERROR] Not in Docker\\n\"; rm -rf node_modules; exit 1; fi",
     "start": "node ./src/server",
     "start:dev": "concurrently --kill-others -p \"[ {name} ]\" -n SERVER -c black.bgGreen \"NODE_ENV=dev node ./watcher.js\"",
-    "test": "./e2e/bin/test-runner.sh",
+    "test": "./e2e/bin/test-runner.sh --name passman",
     "test:watch": "npm run test -- --watch"
   },
   "repository": {
@@ -31,8 +31,8 @@
     "browser-sync": "2.27.10",
     "cli-color": "2.0.2",
     "concurrently": "7.2.1",
-    "eslint": "8.16.0",
-    "eslint-plugin-cypress": "2.11.3",
+    "eslint": "8.57.1",
+    "eslint-plugin-playwright": "1.7.0",
     "nodemon": "2.0.16"
   }
 }

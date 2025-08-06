@@ -1,0 +1,52 @@
+# NOTE:
+# - Using a separate compose file because the `VOL_` variables are only defined
+#   via the test-runner, and can't define volumes via CLI since `up` is required
+#   instead of `run` to allow for `--abort-on-container-exit` to work. Other
+#   missing variables are ignored, but for some reason there's a yaml validation
+#   check that fails for missing volume definitions even if I'm not trying to
+#   run the container with the missing variables.
+# - The context for `PWD` is the repo root since the test-runner is run via npm
+#   in the project root.
+
+services:
+  passman-test:
+    extends:
+      file: "${PWD}/docker-compose.yml"
+      service: passman
+    container_name: passman-test
+    environment:
+      NODE_EXTRA_CA_CERTS: /home/node/app/certs/tests.crt
+    healthcheck:
+      interval: "3s"
+      retries: 3
+      start_interval: "2s"
+      test: wget --no-verbose --tries=1 --spider --no-check-certificate https://tests.lan:3000 || exit 1
+      timeout: "2s"
+    hostname: tests.lan # domain name (usually assigned via container name)
+  
+  passman-e2e:
+    build:
+      context: "${PWD}/e2e/.docker/"
+      dockerfile: Dockerfile
+    command: $CMD
+    container_name: passman-e2e
+    depends_on:
+      passman-test:
+        condition: service_healthy
+    environment:
+      BASE_URL: "https://tests.lan:3000" # <PROTOCOL>://<CONTAINER_NAME>:<CONTAINER_PORT>
+      DATA_PATH: /e2e/mnt/data # so that `constants.js` paths resolve correctly
+      DISPLAY: $TEST_DISPLAY
+    hostname: e2etests
+    ipc: host # Using `--ipc=host` is recommended when using Chrome (Docker docs). Chrome can run out of memory without this flag.
+    ports:
+      - "3001:3000"
+    security_opt:
+      - "seccomp:${PWD}/e2e/seccomp_profile.json"
+    user: "${CURR_UID}:${CURR_GID}"
+    volumes:
+      - "${PWD}/certs:/certs:r"
+      - "${PWD}/e2e:/e2e"
+      - "${PWD}/src/constants.js:/node_modules/@src/constants.js:r" # map local modules to the fake `@src` parent
+      - $VOL_DBUS
+      - $VOL_X11

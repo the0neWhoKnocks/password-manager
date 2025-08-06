@@ -3,7 +3,7 @@ const { resolve } = require('path');
 const API_PREFIX = '/api';
 const ROOT_PATH = resolve(__dirname, './');
 const CLIENT_PATH = `${ROOT_PATH}/client`;
-const DATA_PATH = process.env.DATA_PATH || `${ROOT_PATH}/../data`;
+const DATA_PATH = process.env.DATA_PATH;
 
 const constants = {
   API_PREFIX,

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONTAINER="password_manager_dev"
+CONTAINER="passman-dev"
 export REPO_FUNCS=()
 
 # Wire up the current User so that any files created in development can easily

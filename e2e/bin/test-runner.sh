@@ -1,43 +1,29 @@
 #!/bin/bash
 
-# export to ensure docker-compose can use'm
-export CURR_UID=$(id -u)
-export CURR_GID=$(id -g)
-
-APP__PORT=3000
-APP_SERVICE="password-manager"
-BUILD=true
 DOCKER_HOST="host.docker.internal"
-E2E_SERVICE="e2e-passman"
 SCRIPT_DIR="$(cd "$(dirname "$0")" > /dev/null 2>&1; pwd -P)"
+BUILD=true
 WATCH_MODE=false
 isLinux=false
 isOSX=false
 isWSL=false
 
 # Parse arguments
-remainingArgs=()
 while [ $# -gt 0 ]; do
   case $1 in
-    -s|--skip-build)
+    --name)
+      CONT_NAME=$2
+      shift
+      ;;
+    --skip-build)
       BUILD=false
-      shift
       ;;
-    -w|--watch)
+    --watch)
       WATCH_MODE=true
-      shift
-      ;;
-    -*|--*)
-      echo "Unknown option $1"
-      exit 1
-      ;;
-    *)
-      remainingArgs+=("$1")
-      shift
       ;;
   esac
+  shift
 done
-set -- "${remainingArgs[@]}" 
 
 # Linux env
 if [ -f "/proc/version" ]; then
@@ -51,33 +37,19 @@ else
   isOSX=$(uname | grep -qi "darwin" &> /dev/null)
 fi
 
-TEST_FOLDER="./e2e"
-PATH_01=("${TEST_FOLDER}/cypress.json" "{ \"video\": false }\n")
-PATH_02=("${TEST_FOLDER}/cypress/integration")
-PATH_03=("${TEST_FOLDER}/cypress/integration/example.test.js" "context('Example', () => {\n  beforeEach(() => { cy.visit('/'); });\n\n  it('should have loaded', () => {\n    cy.get('title').contains(/.*/);\n  });\n});\n")
-scaffold=(PATH_01[@] PATH_02[@] PATH_03[@])
-if [ ! -f "${!scaffold[0]:0:1}" ]; then
-  echo "[SCAFFOLD] Cypress test directory"
-  
-  length=${#scaffold[@]}
-  for ((i=0; i<$length; i++)); do
-    path="${!scaffold[i]:0:1}"
-    contents="${!scaffold[i]:1:1}"
-    
-    if [[ "${contents}" != "" ]]; then printf "${contents}" > "${path}"; else mkdir -p "${path}"; fi
-  done
-fi
-
-cypressCmd=""
+APP_SERVICE="${CONT_NAME}-test"
+CURR_GID=$(id -g)
+CURR_UID=$(id -u)
+E2E_COMPOSE_FILE="./e2e/docker-compose.yml"
+E2E_CONTAINER_NAME="${CONT_NAME}-e2e"
+E2E_SERVICE="${CONT_NAME}-e2e"
+runnerCmd=""
 xlaunchPath="${SCRIPT_DIR}/XServer.xlaunch"
-export CYPRESS_BASE_URL="https://${DOCKER_HOST}:${APP__PORT}"
-baseEnvVars=("CYPRESS_BASE_URL=${CYPRESS_BASE_URL}")
+extraArgs=""
 
-# When watching for test changes, `open` (instead of `run`) Cypress so that the
+# When watching for test changes, `open` (instead of `run`) runner so that the
 # Dev can use the GUI for an easy test writing experience.
 if $WATCH_MODE; then
-  extraArgs=$(printf -- "-e %s " "${baseEnvVars[@]}")
-  
   if $isWSL; then
     display="${DOCKER_HOST}:0"
     xlaunchBinary="/c/Program Files/VcXsrv/xlaunch.exe"
@@ -100,12 +72,15 @@ if $WATCH_MODE; then
     IP=$(ip addr show | grep docker | grep -Eo 'inet ([^/]+)' | sed 's|inet ||')
     DBUS_PATH=$(echo "${DBUS_SESSION_BUS_ADDRESS}" | sed 's|unix:path=||')
     display="${DISPLAY}"
-    extraArgs="${extraArgs} -e DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS}" -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v /run/dbus/system_bus_socket:/run/dbus/system_bus_socket -v ${DBUS_PATH}:${DBUS_PATH}"
+    
+    export VOL_X11='/tmp/.X11-unix:/tmp/.X11-unix:rw'
+    export VOL_DBUS='/run/dbus/system_bus_socket:/run/dbus/system_bus_socket'
+    
+    # ensure folder is accessible by container mount (otherwise report creation will fail)
+    chmod 777 e2e
   fi
 
   if [[ "$display" != "" ]]; then
-    cypressCmd="docker compose run --user ${CURR_UID}:${CURR_GID} -e DISPLAY=${display} ${extraArgs} --rm --entrypoint cypress ${E2E_SERVICE} open --project ."
-    
     if [[ "$xlaunchBinary" != "" ]] && [ -f "$xlaunchBinary" ]; then
       echo;
       echo "[START] XServer"
@@ -113,12 +88,12 @@ if $WATCH_MODE; then
     elif [[ "$xquartzBinary" != "" ]] && [ -f "$xquartzBinary" ]; then
       echo;
       echo "[START] XServer"
-      xhost + $IP
+      xhost + "$IP"
     elif $isLinux; then
       echo;
       echo "[SET] xhost"
-      # 'cypresstests' is the 'hostname' defined in docker-compose.yml
-      xhost + local:cypresstests
+      # 'e2etests' is the 'hostname' defined in docker-compose.yml
+      xhost + local:e2etests
     else
       echo "[ERROR] The XServer binary could not be located. Follow the instructions in the README to get it installed."
       echo;
@@ -130,32 +105,31 @@ if $WATCH_MODE; then
     echo;
     exit 1
   fi
-fi 
+fi
 
 if $BUILD; then
   echo;
   echo "[BUILD] Containers"
-  docker compose build $APP_SERVICE $E2E_SERVICE
-  if [ $? -ne 0 ]; then
-    echo "[ERROR] Building Docker image failed."
-    exit 1
-  fi
+  docker compose -f "${E2E_COMPOSE_FILE}" build ${APP_SERVICE} ${E2E_SERVICE} 
 fi
 
 echo;
 echo "[START] Tests"
 echo;
-if [[ "$cypressCmd" != "" ]]; then
-  echo "[RUN] ${cypressCmd}"
-  ${cypressCmd}
+if $WATCH_MODE; then
+  export CMD="npx playwright test --ui"
+  export TEST_DISPLAY="$display"
 else
-  envVars=$(printf "export %s; " "${baseEnvVars[@]}")
-  # NOTE - `depends_on` in docker-compose will start the App
-  eval "${envVars} docker compose up --abort-on-container-exit ${E2E_SERVICE}" 
+  export CMD="npx playwright test"
 fi
+# - Even though the App is started via E2E (depends_on), if it's not included here,
+#   the test container won't abort if the App container dies.
+# - Using `compose up` instead of `compose run` because `abort-on-container-exit`
+#   doesn't work with `run`.
+docker compose -f "${E2E_COMPOSE_FILE}" up --abort-on-container-exit --remove-orphans $APP_SERVICE $E2E_SERVICE
 exitCode=$(echo $?)
 
-docker compose down
+docker compose -f "${E2E_COMPOSE_FILE}" down
 
 if [[ "$xlaunchKillCmd" != "" ]]; then
   echo;
