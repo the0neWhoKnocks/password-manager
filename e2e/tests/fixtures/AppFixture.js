@@ -16,21 +16,21 @@ export class AppFixture extends BaseFixture {
   constructor({ browser, context, page, testCtx, testInfo }) {
     super({ browser, context, page, testCtx, testInfo });
     
-    const credsForm = this.getElBySelector('.creds-form');
-    const credsMenu = this.getElBySelector(`${SELECTOR__TOP_NAV} custom-drop-down[label="Credentials"]`);
-    const inputCreator = this.getElBySelector('.input-creator-form');
-    const userMenu = this.getElBySelector(`${SELECTOR__TOP_NAV} custom-drop-down[label="User"]`);
+    const credsForm = this.getEl('.creds-form');
+    const credsMenu = this.getEl(`${SELECTOR__TOP_NAV} custom-drop-down[label="Credentials"]`);
+    const inputCreator = this.getEl('.input-creator-form');
+    const userMenu = this.getEl(`${SELECTOR__TOP_NAV} custom-drop-down[label="User"]`);
     this.els = {
       addCredsBtn: credsForm.locator('button:text-is("Add Credentials")'),
       addCustomFieldBtn: inputCreator.locator('button:has-text("Add Custom Field")'),
-      createAccountForm: this.getElBySelector('#createAccount'),
-      createConfigForm: this.getElBySelector('#createConfig'),
+      createAccountForm: this.getEl('#createAccount'),
+      createConfigForm: this.getEl('#createConfig'),
       credsForm,
-      filterInput: this.getElBySelector('.credentials__filter-input'),
+      filterInput: this.getEl('.credentials__filter-input'),
       inputCreator,
-      loginForm: this.getElBySelector(SELECTOR__FORM__LOGIN),
-      noCredsMsg: this.getElBySelector('.no-creds-msg'),
-      progressIndicator: this.getElBySelector('.load-progress-indicator'),
+      loginForm: this.getEl(SELECTOR__FORM__LOGIN),
+      noCredsMsg: this.getEl('.no-creds-msg'),
+      progressIndicator: this.getEl('.load-progress-indicator'),
       topNav: {
         addCreds: credsMenu.locator('#addCreds'),
         credsMenu,
@@ -42,8 +42,8 @@ export class AppFixture extends BaseFixture {
         userMenu,
       },
       updateCredsBtn: credsForm.locator('button:text-is("Update Credentials")'),
-      userForm: this.getElBySelector('.update-user-form'),
-      visibleCreds: this.getElBySelector('.credentials__cards > *:visible'),
+      userForm: this.getEl('.update-user-form'),
+      visibleCreds: this.getEl('.credentials__cards > *:visible'),
     };
   }
   
@@ -62,9 +62,9 @@ export class AppFixture extends BaseFixture {
   }
   
   async autoLogin(username, password) {
-    await this.elExists(SELECTOR__FORM__LOGIN, async () => {
+    if (await this.elExists(SELECTOR__FORM__LOGIN)) {
       await this.login(username, password);
-    });
+    }
   }
   
   async clearStorage() {
@@ -77,12 +77,12 @@ export class AppFixture extends BaseFixture {
   async deleteCred(label) {
     const CARD_SELECTOR = `${SELECTOR__CRED_CARD}[data-card-label="${label}"]`;
     
-    await this.elExists(CARD_SELECTOR, async () => {
-      await this.getElBySelector(`${CARD_SELECTOR} [value="delete"]`).click();
-      await this.getElBySelector('.delete-confirmation button:text-is("Yes")').click();
-    });
+    if (await this.elExists(CARD_SELECTOR)) {
+      await this.getEl(`${CARD_SELECTOR} [value="delete"]`).click();
+      await this.getEl('.delete-confirmation button:text-is("Yes")').click();
+    }
     
-    await expect(this.getElBySelector('.delete-confirmation')).toHaveCount(0);
+    await expect(this.getEl('.delete-confirmation')).toHaveCount(0);
   }
   
   async editCred(label) {
@@ -90,7 +90,7 @@ export class AppFixture extends BaseFixture {
   }
   
   getCredCard(id) {
-    return this.getElBySelector(`${SELECTOR__CRED_CARD}[data-card-label="${id}"]`);
+    return this.getEl(`${SELECTOR__CRED_CARD}[data-card-label="${id}"]`);
   }
   
   async loadPage(path = '/') {
@@ -137,7 +137,7 @@ export class AppFixture extends BaseFixture {
   
   waitForDialog(loc) {
     const self = this;
-    const wcDialog = this.getElBySelector('custom-dialog').filter({ has: loc });
+    const wcDialog = this.getEl('custom-dialog').filter({ has: loc });
     const dialog = wcDialog.locator('.dialog');
     
     return {

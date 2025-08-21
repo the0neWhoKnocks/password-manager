@@ -34,9 +34,12 @@ services:
       passman-test:
         condition: service_healthy
     environment:
+      # runner env
       BASE_URL: "https://tests.lan:3000" # <PROTOCOL>://<CONTAINER_NAME>:<CONTAINER_PORT>
-      DATA_PATH: /e2e/mnt/data # so that `constants.js` paths resolve correctly
+      CMD: $CMD # so the config can check if it's headless or not
       DISPLAY: $TEST_DISPLAY
+      # for constants
+      DATA_PATH: /e2e/mnt/data
     hostname: e2etests
     ipc: host # Using `--ipc=host` is recommended when using Chrome (Docker docs). Chrome can run out of memory without this flag.
     ports:
@@ -45,8 +48,12 @@ services:
       - "seccomp:${PWD}/e2e/seccomp_profile.json"
     user: "${CURR_UID}:${CURR_GID}"
     volumes:
-      - "${PWD}/certs:/certs:r"
-      - "${PWD}/e2e:/e2e"
-      - "${PWD}/src/constants.js:/node_modules/@src/constants.js:r" # map local modules to the fake `@src` parent
+      - type: bind
+        source: "${PWD}/e2e"
+        target: "/e2e"
+      - type: bind
+        read_only: true
+        source: "${PWD}/src/constants.js"
+        target: "/node_modules/@src/constants.js" # map local modules to the fake `@src` parent
       - $VOL_DBUS
       - $VOL_X11

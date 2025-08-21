@@ -25,7 +25,7 @@ test.beforeEach(async ({ app }) => {
 
 test.describe('Init', () => {
   test('Page Title', async ({ app }) => {
-    await app.verifyPageTitle('Password Manager');
+    await expect(app.page).toHaveTitle('Password Manager');
   });
   
   test('Fill Out Config Data', async ({ app }) => {
@@ -36,11 +36,11 @@ test.describe('Init', () => {
     await app.page.reload();
     
     await app.waitForDialog(createConfigForm).toBeVisible();
-    await app.getElBySelector('input[name="cipherKey"]').fill('zeffer');
-    await app.getElBySelector('input[name="salt"]').fill('pepper');
+    await app.getEl('input[name="cipherKey"]').fill('zeffer');
+    await app.getEl('input[name="salt"]').fill('pepper');
     await app.screenshot('[config] filled out');
     
-    await app.getElBySelector('button[value="create"]').click();
+    await app.getEl('button[value="create"]').click();
     await app.waitForDialog(loginForm).toBeVisible();
   });
   
@@ -59,13 +59,13 @@ test.describe('Init', () => {
     await app.screenshot('[create_user] filled out');
     await createAccountForm.locator('button[value="create"]').click();
     
-    await app.verifyAlert(
-      `An account for "${CREDS__USERNAME}${CREDS__USERNAME}" doesn't exist.`,
+    await expect(app.page).toHaveAlertMsg(
       async () => {
         await app.login(CREDS__USERNAME, CREDS__PASSWORD, {
           label: '[login_user] incorrect creds filled out',
         });
-      }
+      },
+      `An account for "${CREDS__USERNAME}${CREDS__USERNAME}" doesn't exist.`
     );
   
     await app.login(CREDS__USERNAME, CREDS__PASSWORD, {
@@ -87,7 +87,7 @@ test.describe('Init', () => {
 test.describe('Creds', () => {
   test.beforeEach(async ({ app }) => {
     await app.autoLogin(CREDS__USERNAME, CREDS__PASSWORD);
-    await expect(app.getElBySelector('.credentials')).toBeVisible();
+    await expect(app.getEl('.credentials')).toBeVisible();
   });
   
   test.describe('First Cred', () => {
@@ -174,7 +174,7 @@ test.describe('Creds', () => {
       await app.editCred(LABEL);
       await app.addCustom();
       await app.typeStuff(app.getFocusedEl(), `${key}{Enter}`);
-      await app.getElBySelector('[name="customField_1"]').fill(value);
+      await app.getEl('[name="customField_1"]').fill(value);
       await app.screenshot('Adding custom field');
       await app.updateCred();
       
@@ -184,16 +184,16 @@ test.describe('Creds', () => {
     
     test('Hide/Show Values', async ({ app }) => {
       const MODIFIER = 'has--hidden-values';
-      const hideInput = app.getElBySelector('.credentials__hide-values-btn input');
-      const creds = app.getElBySelector('.credentials');
+      const hideInput = app.getEl('.credentials__hide-values-btn input');
+      const creds = app.getEl('.credentials');
       
       await expect(creds).not.toContainClass(MODIFIER);
       await expect(hideInput).not.toBeChecked()
       await hideInput.click();
       await expect(creds).toContainClass(MODIFIER);
-      const els = await app.getElBySelector(`${SELECTOR__CRED_CARD__ITEM_VALUE} span`).all();
+      const els = await app.getEl(`${SELECTOR__CRED_CARD__ITEM_VALUE} span`).all();
       for (const el of els) {
-        await app.verifyCSS(el, { filter: 'blur(4px)' });
+        await expect(el).toContainCSS({ filter: 'blur(4px)' });
       }
       
       await expect(hideInput).toBeChecked()
@@ -225,7 +225,7 @@ test.describe('Creds', () => {
     });
     
     test('Group Creds by First Letter', async ({ app }) => {
-      const cardEls = app.getElBySelector('.credentials__cards > *');
+      const cardEls = app.getEl('.credentials__cards > *');
       
       await expect(cardEls.nth(0)).toHaveText('A');
       await expect(cardEls.nth(1)).toHaveAttribute('data-card-label', 'android');
@@ -316,7 +316,7 @@ test.describe('User', () => {
       overwrite: true,
     });
     
-    await expect(app.getElBySelector('.credentials__list')).toBeVisible();
+    await expect(app.getEl('.credentials__list')).toBeVisible();
     
     // reset data
     await userMenu.click();
@@ -333,13 +333,13 @@ test.describe('User', () => {
     await deleteUser.click();
     await app.screenshot('Delete confirmation');
     
-    await app.getElBySelector('.delete-confirmation button:text-is("Yes")').click();
+    await app.getEl('.delete-confirmation button:text-is("Yes")').click();
     
-    await app.verifyAlert(
-      `An account for "${CREDS__USERNAME}" doesn't exist.`,
+    await expect(app.page).toHaveAlertMsg(
       async () => {
         await app.login(CREDS__USERNAME, CREDS__PASSWORD, { overwrite: true });
-      }
+      },
+      `An account for "${CREDS__USERNAME}" doesn't exist.`
     );
     await app.screenshot('Login credentials do not work');
   });

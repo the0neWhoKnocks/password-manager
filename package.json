@@ -3,7 +3,7 @@
   "version": "2.6.0",
   "description": "A password manager",
   "engines": {
-    "node": ">=14"
+    "node": ">=24.1.0"
   },
   "main": "index.js",
   "scripts": {

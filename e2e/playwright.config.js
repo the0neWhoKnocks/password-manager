@@ -45,17 +45,15 @@ export default defineConfig({
   // If tests take longer that X seconds, it should fail.
   timeout: 120000,
   
+  // https://playwright.dev/docs/api/class-testoptions
   use: {
     // For things like `click`
     actionTimeout: 2000,
     // Base URL to use in actions like `await page.goto('/')`.
     baseURL: process.env.BASE_URL,
     
-    clientCertificates: [{
-      origin: 'https://tests.lan',
-      certPath: '/certs/tests.crt',
-      keyPath: '/certs/tests.key',
-    }],
+    // Including so that `page.pause()` works (only when `false`)
+    headless: !process.env.CMD.includes(' --ui'),
     
     // bypass having to create certs just for the test container
     ignoreHTTPSErrors: true,

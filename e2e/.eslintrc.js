@@ -11,8 +11,6 @@ module.exports = {
     'playwright/expect-expect': ['error', {
       assertFunctionNames: [
         'deleteCred',
-        'verifyAlert',
-        'verifyPageTitle',
         'waitForDialog',
       ],
     }],
