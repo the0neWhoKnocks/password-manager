@@ -19,14 +19,17 @@ function startcont {
     return
   fi
 
-  # boot container and enter it
+  # boot container
   docker compose build "${CONTAINER}" && docker compose up -d "${CONTAINER}"
   exitCode=$?
   if [ $exitCode -ne 0 ]; then
     echo "[ERROR] Problem starting ${CONTAINER}"
     return $exitCode
   fi
-  docker compose exec -u node -it "${CONTAINER}" zsh && docker compose down
+  
+  # enter container
+  function exitCont { docker compose down; }
+  docker compose exec -u node -it "${CONTAINER}" zsh && exitCont || exitCont
 }
 
 REPO_FUNCS+=("entercont")
